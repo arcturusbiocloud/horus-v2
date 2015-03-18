@@ -1,7 +1,11 @@
 Horus-v2
 =====
 
-This project is responsible for manage the execution of the scripts on the Arcturus BioCloud "biocomputer". It should evolve to something that can control all the hardware through the serial and USB ports of the BBB. 
+This project is responsible for manage the execution of the scripts on the Arcturus BioCloud "biocomputer". It should evolve to something that can control all the hardware through the serial and USB ports of the BBB.
+
+## Install dependencies
+    go get github.com/go-martini/martini
+    go get github.com/codegangsta/martini-contrib/render
 
 ## How to start
     go run main.go
