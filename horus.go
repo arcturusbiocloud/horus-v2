@@ -48,7 +48,7 @@ func main() {
     r.JSON(200, map[string]interface{}{"status": "true"})
   })
   
-  // check all the machine hardware
+  // send commands to the arduino serial port
   m.Get("/api/serial/:buffer", func(r render.Render, params martini.Params) {
     buf := params["buffer"]
         
