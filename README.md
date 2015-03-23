@@ -47,16 +47,33 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
     {"script_call":"experiment.sh 1","status":"running"}
     
     # GET /api/online
+    curl -X GET http://10.1.10.111:3000/api/online
     {"status":"true"}
+    
+    # turn UV light OFF
+    $ curl -X GET http://10.1.10.111:3000/api/serial/0
+    {"status":"0\r\n"}
+    
+    # turn UV light ON
+    $ curl -X GET http://10.1.10.111:3000/api/serial/1
+    {"status":"1\r\n"}
+    
+    # get the temperature and humidity stats
+    $ curl -X GET http://10.1.10.111:3000/api/serial/2
+    {"status":"1\r\n"}
+    
 
 ## Feature Roadmap
 
   - [x] ARM cross compilation
   - [x] auto init BBB script
+  - [x] serial port interface transilluminator
+  - [x] serial port interface incubator
   - [ ] rest call to execute and check bash scripts status
   - [ ] rest call to check the status of the hardware
   - [ ] basic authentication
   - [ ] rest call to start video streaming
   - [ ] storage device interface (OpenPCR)
   - [ ] serial port interface (labcontrol)
+  - [ ] serial port interface 
   - [ ] robot syntax sugar
