@@ -4,9 +4,14 @@ import (
   "github.com/go-martini/martini"
   "github.com/codegangsta/martini-contrib/render"
   "github.com/tarm/serial"
-  "log"
   "time"
   "bufio"
+  "log"
+  "strings"
+  "os"
+  "strconv"
+  "syscall"
+  "os/exec"
 )
 
 func main() {
@@ -26,19 +31,27 @@ func main() {
   m.Post("/api/project/:script_call", func(r render.Render, params martini.Params) {
     script_call := params["script_call"]
     // run a script
-    // ...
-    // status will be running, not_found
-    r.JSON(200, map[string]interface{}{"script_call": script_call, "status": "running"})
+    pid, err := exe_cmd(script_call)
+    if err != nil {
+      r.JSON(200, map[string]interface{}{"script_call": script_call, "status": "error", "err" : err})
+    } else {
+      // status will be running, not_found
+      r.JSON(200, map[string]interface{}{"script_call": script_call, "status": "running", "pid": pid})
+    }
   })
   
   // get a status of a script previously executed
-  m.Get("/api/project/:script_call", func(r render.Render, params martini.Params) {
-    script_call := params["script_call"]
-    // list process with the name script_call and check if it's running
-    // if running
-    r.JSON(200, map[string]interface{}{"script_call": script_call, "status": "running"})
-    // if not
-    // ...
+  m.Get("/api/project/:pid", func(r render.Render, params martini.Params) {
+    pid := params["pid"]
+    
+    iPid, _ := strconv.Atoi(pid)
+    p, _ := os.FindProcess(iPid)
+    err := p.Signal(syscall.Signal(0))
+    if err != nil {
+      r.JSON(200, map[string]interface{}{"pid": iPid, "status": "error", "err": err.Error()})
+    } else {
+      r.JSON(200, map[string]interface{}{"pid": iPid, "status": "alive"})
+    }
   })
 
   // check all the machine hardware
@@ -75,4 +88,18 @@ func main() {
   })
     
   m.Run()
+}
+
+func exe_cmd(cmd string) (int,error) {
+  parts := strings.Fields(cmd)
+  head := parts[0]
+  parts = parts[1:len(parts)]
+  
+  out := exec.Command(head, parts...)
+  err := out.Start()
+  if err != nil {
+    return 0, err
+  }
+  go out.Wait()
+  return out.Process.Pid, nil
 }

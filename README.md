@@ -39,37 +39,38 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
     
 ## How to test
     # POST /api/project/script_call
-    curl -X POST localhost:3000/api/project/experiment.sh%201
-    {"script_call":"experiment.sh 1","status":"running"}
+    curl -X POST localhost:3000/api/project/sleep%2060
+    {"pid":14298,"script_call":"sleep 60","status":"running"}
 
-    # GET /api/project/script_call
-    curl -X GET localhost:3000/api/project/experiment.sh%201
-    {"script_call":"experiment.sh 1","status":"running"}
+    # GET /api/project/pid
+    curl -X GET localhost:3000/api/project/14224
+    {"pid":14298,"status":"alive"}
+    # or
+    {"err":"os: process already finished","pid":14298,"status":"error"}
     
     # GET /api/online
-    curl -X GET http://10.1.10.111:3000/api/online
+    curl -X GET 10.1.10.111:3000/api/online
     {"status":"true"}
     
     # turn UV light OFF
-    $ curl -X GET http://10.1.10.111:3000/api/serial/0
+    $ curl -X GET 10.1.10.111:3000/api/serial/0
     {"status":"0\r\n"}
     
     # turn UV light ON
-    $ curl -X GET http://10.1.10.111:3000/api/serial/1
+    $ curl -X GET 10.1.10.111:3000/api/serial/1
     {"status":"1\r\n"}
     
     # get the temperature and humidity stats
-    $ curl -X GET http://10.1.10.111:3000/api/serial/2
+    $ curl -X GET 10.1.10.111:3000/api/serial/2
     {"status":"1\r\n"}
     
-
 ## Feature Roadmap
 
   - [x] ARM cross compilation
   - [x] auto init BBB script
   - [x] serial port interface transilluminator
   - [x] serial port interface incubator
-  - [ ] rest call to execute and check bash scripts status
+  - [x] rest call to execute and check bash scripts status
   - [ ] rest call to check the status of the hardware
   - [ ] basic authentication
   - [ ] rest call to start video streaming
