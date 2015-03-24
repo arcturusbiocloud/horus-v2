@@ -71,10 +71,7 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
   - [x] serial port interface transilluminator
   - [x] serial port interface incubator
   - [x] rest call to execute and check bash scripts status
+  - [ ] rest call to take a picture from a specific slot
   - [ ] rest call to check the status of the hardware
-  - [ ] basic authentication
   - [ ] rest call to start video streaming
-  - [ ] storage device interface (OpenPCR)
-  - [ ] serial port interface (labcontrol)
-  - [ ] serial port interface 
-  - [ ] robot syntax sugar
+  - [ ] basic authentication
