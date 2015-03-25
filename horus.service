@@ -4,7 +4,7 @@ After=syslog.target network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/horus-v2
+ExecStart=/root/horus-v2/horus-v2
 
 [Install]
 WantedBy=multi-user.target
