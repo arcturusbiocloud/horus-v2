@@ -64,6 +64,18 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
     $ curl -X GET 10.1.10.111:3000/api/serial/2
     {"status":"1\r\n"}
     
+    # turn camera 0 streaming on
+    curl -X GET 10.1.10.111:3000/api/camera_streaming/on
+    {"status":"streaming"}
+    
+    # turn camera 0 streaming off
+    curl -X GET 10.1.10.111:3000/api/camera_streaming/off
+    {"status": "streaming stopped"}
+    
+    # get a picture from camera 1 at a specific slot
+    curl -X GET 10.1.10.111:3000/api/camera_picture/1
+    # the response is a png file or a 500 internal server error. it stops the camera 0 streaming
+        
 ## Feature Roadmap
 
   - [x] ARM cross compilation
@@ -71,7 +83,9 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
   - [x] serial port interface transilluminator
   - [x] serial port interface incubator
   - [x] rest call to execute and check bash scripts status
-  - [ ] rest call to take a picture from a specific slot
+  - [x] rest call to start video streaming
+  - [!] rest call to take a picture from a specific slot
+  - [ ] same response format to all calls
+  - [ ] syntax sugar to serial devices
   - [ ] rest call to check the status of the hardware
-  - [ ] rest call to start video streaming
   - [ ] basic authentication
