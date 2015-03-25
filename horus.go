@@ -4,20 +4,24 @@ import (
   "github.com/go-martini/martini"
   "github.com/codegangsta/martini-contrib/render"
   "github.com/tarm/serial"
+  "github.com/mitchellh/go-ps"
   "time"
   "bufio"
   "log"
   "strings"
   "os"
+  "io"
   "strconv"
   "syscall"
   "os/exec"
+  "net/http"
 )
 
 func main() {
   m := martini.Classic()
   m.Use(render.Renderer())
-  
+  m.Use(martini.Static("/root/horus-v2/streaming"))
+    
   // init the arduino serial port
   c := &serial.Config{Name: "/dev/ttyACM0", Baud: 9600, ReadTimeout: time.Millisecond * 2000}
   s, _ := serial.OpenPort(c)
@@ -86,8 +90,66 @@ func main() {
       }
     }
   })
+  
+  m.Get("/api/camera_streaming/on", func(r render.Render) {    
+    // kill any previous streaming
+    turnoff_streaming()
+    
+    _, err := exe_cmd("/root/horus-v2/bin/camera-streaming.sh")
+    
+    if err != nil {
+      r.JSON(200, map[string]interface{}{"error": err.Error()})
+    } else {
+      r.JSON(200, map[string]interface{}{"status": "streaming"})
+    }
+  })
+  
+  m.Get("/api/camera_streaming/off", func(r render.Render) {        
+    turnoff_streaming()
+    r.JSON(200, map[string]interface{}{"status": "streaming stopped"})
+  })
+  
+  m.Get("/api/camera_picture", func(res http.ResponseWriter, req *http.Request) {
+    turnoff_streaming()
+    
+    // remove files
+    os.Remove("/root/horus-v2/bin/capture.png")
+    os.Remove("/root/horus-v2/bin/edges.png")
+    
+    // take picture
+    proc := exec.Command("v4l2-ctl", "-d", "/dev/video1", "-c", "focus_auto=0")
+    proc.Run()
+    proc = exec.Command("v4l2-ctl", "--set-fmt-video=width=1920,height=1080,pixelformat=1")
+    proc.Run()
+    proc = exec.Command("/root/horus-v2/bin/boneCV")
+    err := proc.Run()
+    if err != nil {
+      log.Printf("err= %s", err.Error())
+      res.WriteHeader(500)
+    }
+
+    // serving image
+    res.Header().Set("Content-Type", "image/png")
+    f, err := os.Open("/root/horus-v2/bin/capture.png")
+    if err != nil {
+      log.Printf("err= %s", err.Error())
+      res.WriteHeader(500)
+    }
+    defer f.Close()
+    io.Copy(res, f)
+  })
     
   m.Run()
+}
+
+func turnoff_streaming() {
+  p, _ := ps.Processes()
+  for _, p1 := range p {
+    if p1.Executable() == "camera-streamin" || p1.Executable() == "capture" ||  p1.Executable() == "avconv" {
+      proc, _ := os.FindProcess(p1.Pid())
+      proc.Kill()
+    }
+  }
 }
 
 func exe_cmd(cmd string) (int,error) {
