@@ -5,6 +5,8 @@ import (
   "github.com/codegangsta/martini-contrib/render"
   "github.com/tarm/serial"
   "github.com/mitchellh/go-ps"
+  "os/exec"
+  "net/http"
   "time"
   "bufio"
   "log"
@@ -13,8 +15,6 @@ import (
   "io"
   "strconv"
   "syscall"
-  "os/exec"
-  "net/http"
   "errors"
 )
 
@@ -136,6 +136,10 @@ func main() {
     // remove files
     os.Remove("/root/horus-v2/bin/capture.png")
     os.Remove("/root/horus-v2/bin/edges.png")
+    
+    // ...
+    // ...
+    // ... 
     
     // take picture
     proc := exec.Command("v4l2-ctl", "-d", "/dev/video1", "-c", "focus_auto=0")
