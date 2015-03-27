@@ -40,37 +40,49 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
 ## How to test
     # POST /api/project/script_call
     curl -X POST localhost:3000/api/project/sleep%2060
-    {"pid":14298,"script_call":"sleep 60","status":"running"}
+    {"status":"running", "pid":14298,"script_call":"sleep 60"}
 
     # GET /api/project/pid
     curl -X GET localhost:3000/api/project/14224
     {"pid":14298,"status":"alive"}
     # or
-    {"err":"os: process already finished","pid":14298,"status":"error"}
+    {"status":"error", "err":"os: process already finished","pid":14298}
     
     # GET /api/online
     curl -X GET 10.1.10.111:3000/api/online
     {"status":"true"}
+    # or
+    {"status":"error" ...}
     
     # turn UV light OFF
-    $ curl -X GET 10.1.10.111:3000/api/serial/0
-    {"status":"0\r\n"}
+    $ curl -X GET 10.1.10.111:3000/api/uv_light/off
+    {"status":"uv light turned off"}
+    # or
+    {"status":"error" ...}
     
     # turn UV light ON
-    $ curl -X GET 10.1.10.111:3000/api/serial/1
-    {"status":"1\r\n"}
+    $ curl -X GET 10.1.10.111:3000/api/uv_light/on
+    {"status":"uv light turned on"}
+    # or
+    {"status":"error" ...}
     
     # get the temperature and humidity stats
-    $ curl -X GET 10.1.10.111:3000/api/serial/2
-    {"status":"1\r\n"}
+    $ curl -X GET 10.1.10.111:3000/api/incubator/stats
+    {"status":"Humidity: 37.20 %\tTemperature: 30.00 *C"}
+    # or
+    {"status":"error" ...}
     
     # turn camera 0 streaming on
     curl -X GET 10.1.10.111:3000/api/camera_streaming/on
     {"status":"streaming"}
+    # or
+    {"status":"error" ...}
     
     # turn camera 0 streaming off
     curl -X GET 10.1.10.111:3000/api/camera_streaming/off
     {"status": "streaming stopped"}
+    # or
+    {"status":"error" ...}
     
     # get a picture from camera 1 at a specific slot
     curl -X GET 10.1.10.111:3000/api/camera_picture/1
@@ -85,7 +97,7 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
   - [x] rest call to execute and check bash scripts status
   - [x] rest call to start video streaming
   - [!] rest call to take a picture from a specific slot
-  - [ ] same response format to all calls
-  - [ ] syntax sugar to serial devices
+  - [x] same response format to all calls
+  - [x] syntax sugar to serial devices
   - [ ] rest call to check the status of the hardware
   - [ ] basic authentication

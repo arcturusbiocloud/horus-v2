@@ -15,20 +15,23 @@ import (
   "syscall"
   "os/exec"
   "net/http"
+  "errors"
 )
+
+var s *serial.Port
 
 func main() {
   m := martini.Classic()
   m.Use(render.Renderer())
   m.Use(martini.Static("/root/horus-v2/streaming"))
+
+  log.Printf("Horus-v2 bio server controller")
     
   // init the arduino serial port
-  c := &serial.Config{Name: "/dev/ttyACM0", Baud: 9600, ReadTimeout: time.Millisecond * 2000}
-  s, _ := serial.OpenPort(c)
-  log.Printf("The USB port the Arduino service will use is /dev/ttyACM0")
+  c := &serial.Config{Name: "/dev/ttyACM1", Baud: 9600, ReadTimeout: time.Millisecond * 2000}
+  s, _ = serial.OpenPort(c)
   
-  // When connecting to an older revision Arduino, you need to wait
-	// a little while it resets.
+  // when connecting to an older revision Arduino, you need to wait a little while it resets.
 	time.Sleep(1 * time.Second)
 	  
   // execute a script and return the status
@@ -37,7 +40,7 @@ func main() {
     // run a script
     pid, err := exe_cmd(script_call)
     if err != nil {
-      r.JSON(200, map[string]interface{}{"script_call": script_call, "status": "error", "err" : err})
+      r.JSON(200, map[string]interface{}{"script_call": script_call, "status": "error", "error" : err.Error()})
     } else {
       // status will be running, not_found
       r.JSON(200, map[string]interface{}{"script_call": script_call, "status": "running", "pid": pid})
@@ -52,7 +55,7 @@ func main() {
     p, _ := os.FindProcess(iPid)
     err := p.Signal(syscall.Signal(0))
     if err != nil {
-      r.JSON(200, map[string]interface{}{"pid": iPid, "status": "error", "err": err.Error()})
+      r.JSON(200, map[string]interface{}{"pid": iPid, "status": "error", "error": err.Error()})
     } else {
       r.JSON(200, map[string]interface{}{"pid": iPid, "status": "alive"})
     }
@@ -65,32 +68,48 @@ func main() {
     r.JSON(200, map[string]interface{}{"status": "true"})
   })
   
-  // send commands to the arduino serial port
-  m.Get("/api/serial/:buffer", func(r render.Render, params martini.Params) {
-    buf := params["buffer"]
-        
-    // check the serial port
-    if s == nil {
-      r.JSON(200, map[string]interface{}{"error": "serial port not connected"})
-      return
-    }
-    
-    // get serial
-    _, err := s.Write([]byte(buf))
+  // turn on the uv light at same time turning off the incubator and the tent light
+  m.Get("/api/uv_light/on", func(r render.Render, params martini.Params) {
+    response_buf, err := serial_cmd("1")
     
     if err != nil {
-      r.JSON(200, map[string]interface{}{"error": err})
+      r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
     } else {
-      bio := bufio.NewReader(s)
-      buf, err := bio.ReadString('\n')
-      if err != nil {
-        r.JSON(200, map[string]interface{}{"error": err})
+      if string(response_buf) != "1\r\n" {
+        r.JSON(200, map[string]interface{}{"status": "error", "error": "unexpected response " + string(response_buf)})
       } else {
-        r.JSON(200, map[string]interface{}{"status": string(buf)})
+        r.JSON(200, map[string]interface{}{"status": "uv light turned on"})
+      }
+    } 
+  })
+
+  // turn off the uv light at same time turning on the incubator and the tent light
+  m.Get("/api/uv_light/off", func(r render.Render, params martini.Params) {
+    response_buf, err := serial_cmd("0")
+    
+    if err != nil {
+      r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
+    } else {
+      if string(response_buf) != "0\r\n" {
+        r.JSON(200, map[string]interface{}{"status": "error", "error": "unexpected response " + string(response_buf)})
+      } else {
+        r.JSON(200, map[string]interface{}{"status": "uv light turned off"})
       }
     }
   })
+
+  // get the humidity and the temperature from the incubator
+  m.Get("/api/incubator/stats", func(r render.Render, params martini.Params) {
+    response_buf, err := serial_cmd("2")
+    
+    if err != nil {
+      r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
+    } else {
+      r.JSON(200, map[string]interface{}{"status": strings.Replace(string(response_buf), "\r\n", "", 1)})
+    }
+  })
   
+  // turn on the camera 0 live streaming
   m.Get("/api/camera_streaming/on", func(r render.Render) {    
     // kill any previous streaming
     turnoff_streaming()
@@ -98,17 +117,19 @@ func main() {
     _, err := exe_cmd("/root/horus-v2/bin/camera-streaming.sh")
     
     if err != nil {
-      r.JSON(200, map[string]interface{}{"error": err.Error()})
+      r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
     } else {
       r.JSON(200, map[string]interface{}{"status": "streaming"})
     }
   })
   
+  // turn off the camera 0 live streaming
   m.Get("/api/camera_streaming/off", func(r render.Render) {        
     turnoff_streaming()
     r.JSON(200, map[string]interface{}{"status": "streaming stopped"})
   })
   
+  // take a picture using the camera 1
   m.Get("/api/camera_picture", func(res http.ResponseWriter, req *http.Request) {
     turnoff_streaming()
     
@@ -164,4 +185,26 @@ func exe_cmd(cmd string) (int,error) {
   }
   go out.Wait()
   return out.Process.Pid, nil
+}
+
+func serial_cmd(cmd string) (string, error) {
+  // check the serial port
+  if s == nil {
+    return "", errors.New("serial port not connected")
+  }
+  
+  // get serial
+  _, err := s.Write([]byte(cmd))
+  
+  if err != nil {
+    return "", err
+  } else {
+    bio := bufio.NewReader(s)
+    buf, err := bio.ReadString('\n')
+    if err != nil {
+      return "", err
+    } else {
+      return string(buf), nil
+    }
+  }
 }
