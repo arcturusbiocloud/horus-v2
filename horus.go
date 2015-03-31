@@ -131,15 +131,16 @@ func main() {
   
   // take a picture using the camera 1
   m.Get("/api/camera_picture", func(res http.ResponseWriter, req *http.Request) {
+    // we cannot use two cameras at the same time
     turnoff_streaming()
     
     // remove files
     os.Remove("/root/horus-v2/bin/capture.png")
     os.Remove("/root/horus-v2/bin/edges.png")
     
+    // run scripts to open the oven, positioning on the grid, open the petri dish, turn on the UV light
     // ...
     // ...
-    // ... 
     
     // take picture
     proc := exec.Command("v4l2-ctl", "-d", "/dev/video1", "-c", "focus_auto=0")
@@ -152,6 +153,10 @@ func main() {
       log.Printf("err= %s", err.Error())
       res.WriteHeader(500)
     }
+    
+    // close the  petri dish, turn off the UV light, close the oven, go home
+    // ...
+    // ...
 
     // serving image
     res.Header().Set("Content-Type", "image/png")
