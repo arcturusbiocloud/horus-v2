@@ -28,7 +28,7 @@ func main() {
   log.Printf("Horus-v2 bio server controller")
     
   // init the arduino serial port
-  c := &serial.Config{Name: "/dev/ttyACM1", Baud: 9600, ReadTimeout: time.Millisecond * 2000}
+  c := &serial.Config{Name: "/dev/ttyACM0", Baud: 9600, ReadTimeout: time.Millisecond * 2000}
   s, _ = serial.OpenPort(c)
   
   // when connecting to an older revision Arduino, you need to wait a little while it resets.
