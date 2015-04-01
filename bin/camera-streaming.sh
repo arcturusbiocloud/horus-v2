@@ -19,4 +19,4 @@ v4l2-ctl --set-fmt-video=width=1920,height=1080,pixelformat=1
 #        "-i -"  Take the input from the pipe
 #        "-vcodec copy" Do not transcode the video
 #        "-f rtp rtp://192.168.1.2:1234/" Force rtp to output to address of my PC on port 1234
-./capture -F -o -c0|avconv -re -i - -vcodec copy -f flv -metadata streamName=myStream tcp://osiris.arcturus.io:6666
+./capture -F -o -c0|avconv -re -i - -vcodec copy -f flv rtmp://publish-sfo1.cine.io/live/XJRl3Bsq?group40
