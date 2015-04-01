@@ -136,7 +136,6 @@ func main() {
     
     // remove files
     os.Remove("/root/horus-v2/bin/capture.png")
-    os.Remove("/root/horus-v2/bin/edges.png")
     
     // run scripts to open the oven, positioning on the grid, open the petri dish, turn on the UV light
     // ...

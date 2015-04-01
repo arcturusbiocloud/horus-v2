@@ -27,15 +27,16 @@ int main()
     if(!capture.isOpened()){
 	    cout << "Failed to connect to the camera." << endl;
     }
-    Mat frame, edges;
+    // Mat frame, edges;
+    Mat frame;
     capture >> frame;
     if(frame.empty()){
 		cout << "Failed to capture an image" << endl;
 		return -1;
     }
-    cvtColor(frame, edges, CV_BGR2GRAY);
-    Canny(edges, edges, 0, 30, 3);
-    imwrite("edges.png", edges);
-    imwrite("capture.png", frame);
+    // cvtColor(frame, edges, CV_BGR2GRAY);
+    // Canny(edges, edges, 0, 30, 3);
+    // imwrite("/root/horus-v2/bin/edges.png", edges);
+    imwrite("/root/horus-v2/bin/capture.png", frame);
     return 0;
 }
