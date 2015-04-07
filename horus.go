@@ -152,11 +152,15 @@ func main() {
     
     // turn on the UV light
     turn_on_uv_light()
-    
+        
     // take picture
-    proc = exec.Command("v4l2-ctl", "-d", "/dev/video1", "-c", "focus_auto=1")
-    proc.Run()
+    // http://askubuntu.com/questions/211971/v4l2-ctl-exposure-auto-setting-fails
+    // http://stackoverflow.com/questions/13407859/is-there-a-way-to-control-a-webcam-focus-in-pygame
     proc = exec.Command("v4l2-ctl", "--set-fmt-video=width=1920,height=1080,pixelformat=1")
+    proc.Run()
+    proc = exec.Command("v4l2-ctl", "-d", "/dev/video1", "-c", "focus_auto=0")
+    proc.Run()
+    proc = exec.Command("v4l2-ctl", "-d", "/dev/video1", "-c", "focus_absolute=50")
     proc.Run()
     proc = exec.Command("/root/horus-v2/bin/boneCV")
     err := proc.Run()
@@ -168,7 +172,7 @@ func main() {
     
     // turn on the UV light
     turn_off_uv_light()
-    
+        
     // close the  petri dish, turn off the UV light, close the oven, go home
     // python /root/labcontrol/labcontrol.py -S 1 -v -w /root/labcontrol -s closePetriDish_closeOven_goHome.py
     proc = exec.Command("python", "/root/labcontrol/labcontrol.py", "-S", slot, "-v", "-w", "/root/labcontrol", "-s", "closePetriDish_closeOven_goHome.py")
