@@ -112,7 +112,7 @@ func main() {
   // turn on the camera 0 live streaming
   m.Get("/api/camera_streaming/on", func(r render.Render) {    
     // kill any previous streaming
-    turnoff_streaming()
+    turn_off_streaming()
     
     _, err := exe_cmd("/root/horus-v2/bin/camera-streaming.sh")
     
@@ -125,14 +125,14 @@ func main() {
   
   // turn off the camera 0 live streaming
   m.Get("/api/camera_streaming/off", func(r render.Render) {        
-    turnoff_streaming()
+    turn_off_streaming()
     r.JSON(200, map[string]interface{}{"status": "streaming stopped"})
   })
   
   // take a picture using the camera 1
   m.Get("/api/camera_picture/:slot", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
     // we cannot use two cameras at the same time
-    turnoff_streaming()
+    turn_off_streaming()
     
     // remove files
     os.Remove("/root/horus-v2/bin/capture.png")
@@ -184,7 +184,7 @@ func main() {
   m.Run()
 }
 
-func turnoff_streaming() {
+func turn_off_streaming() {
   p, _ := ps.Processes()
   for _, p1 := range p {
     if p1.Executable() == "camera-streamin" || p1.Executable() == "capture" ||  p1.Executable() == "avconv" {
