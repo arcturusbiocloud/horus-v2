@@ -19,7 +19,10 @@ import (
   "errors"
 )
 
+// serial port handle to communicate with the Arduino
 var s *serial.Port
+// handle to check if the machine is already executing some script 
+var running = false
 
 func main() {
   log.Printf("Horus-v2 bio server controller")
@@ -34,6 +37,13 @@ func main() {
     return username == "arcturus" && password == "huxnGrbNfQFR"
   }))
 
+  // check in every call if the machine is already executing some script
+  m.Use(func(r render.Render) {
+    if (running) {
+      r.JSON(200, map[string]interface{}{"status": "error", "error": "Machine already ocuppied by another process."})
+    }
+  })
+      
   // init the arduino serial port
   c := &serial.Config{Name: "/dev/ttyACM0", Baud: 9600, ReadTimeout: time.Millisecond * 2000}
   s, _ = serial.OpenPort(c)
@@ -154,6 +164,7 @@ func main() {
         
     // run scripts to open the oven, positioning on the grid, open the petri dish
     // python /root/labcontrol/labcontrol.py -S 1 -v -w /root/labcontrol -s openOven_openPetriDish_putCamera.py
+    running = true
     proc := exec.Command("python", "/root/labcontrol/labcontrol.py", "-S", slot, "-v", "-w", "/root/labcontrol", "-s", "openOven_openPetriDish_putCamera.py")
     proc.Run()
     
@@ -174,6 +185,7 @@ func main() {
     if err != nil {
       log.Printf("err= %s", err.Error())
       res.WriteHeader(500)
+      running = false
       return
     }
     
@@ -189,6 +201,7 @@ func main() {
     if err != nil {
       log.Printf("err= %s", err.Error())
       res.WriteHeader(500)
+      running = false
       return
     }
     defer f.Close()
@@ -196,6 +209,7 @@ func main() {
     // serving image
     res.Header().Set("Content-Type", "image/png")
     io.Copy(res, f)
+    running = false
   })
     
   m.Run()
