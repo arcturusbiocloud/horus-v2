@@ -130,13 +130,21 @@ func main() {
   })
   
   // take a picture using the camera 1
-  m.Get("/api/camera_picture", func(res http.ResponseWriter, req *http.Request) {
+  m.Get("/api/camera_picture/:slot", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
     // we cannot use two cameras at the same time
     turnoff_streaming()
     
     // remove files
     os.Remove("/root/horus-v2/bin/capture.png")
     
+    // define slot
+    slot := params["slot"]
+    iSlot, _ := strconv.Atoi(slot)
+    if iSlot <= 0 || iSlot >=12 {
+      res.WriteHeader(500)
+      return
+    }
+        
     // run scripts to open the oven, positioning on the grid, open the petri dish, turn on the UV light
     // ...
     // ...
