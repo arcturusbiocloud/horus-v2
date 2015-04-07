@@ -3,6 +3,7 @@ package main
 import (
   "github.com/go-martini/martini"
   "github.com/codegangsta/martini-contrib/render"
+  "github.com/martini-contrib/auth"
   "github.com/tarm/serial"
   "github.com/mitchellh/go-ps"
   "os/exec"
@@ -27,6 +28,11 @@ func main() {
 
   log.Printf("Horus-v2 bio server controller")
     
+  // authenticate every request
+  m.Use(auth.BasicFunc(func(username, password string) bool {
+    return username == "arcturus" && password == "huxnGrbNfQFR"
+  }))
+
   // init the arduino serial port
   c := &serial.Config{Name: "/dev/ttyACM0", Baud: 9600, ReadTimeout: time.Millisecond * 2000}
   s, _ = serial.OpenPort(c)
