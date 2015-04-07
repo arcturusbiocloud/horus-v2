@@ -85,7 +85,7 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
     {"status":"error" ...}
     
     # get a picture from camera 1 at a specific slot
-    curl -X GET 10.1.10.111:3000/api/camera_picture/1
+    curl -X GET 10.1.10.111:3000/api/camera_picture/1-11
     # the response is a png file or a 500 internal server error. it stops the camera 0 streaming
         
 ## Feature Roadmap
@@ -96,7 +96,7 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
   - [x] serial port interface incubator
   - [x] rest call to execute and check bash scripts status
   - [x] rest call to start video streaming
-  - [!] rest call to take a picture from a specific slot
+  - [x] rest call to take a picture from a specific slot
   - [x] same response format to all calls
   - [x] syntax sugar to serial devices
   - [ ] rest call to check the status of the hardware
