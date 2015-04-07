@@ -145,10 +145,13 @@ func main() {
       return
     }
         
-    // run scripts to open the oven, positioning on the grid, open the petri dish, turn on the UV light
+    // run scripts to open the oven, positioning on the grid, open the petri dish
     // python /root/labcontrol/labcontrol.py -S 1 -v -w /root/labcontrol -s openOven_openPetriDish_putCamera.py
     proc := exec.Command("python", "/root/labcontrol/labcontrol.py", "-S", slot, "-v", "-w", "/root/labcontrol", "-s", "openOven_openPetriDish_putCamera.py")
     proc.Run()
+    
+    // turn on the UV light
+    turn_on_uv_light()
     
     // take picture
     proc = exec.Command("v4l2-ctl", "-d", "/dev/video1", "-c", "focus_auto=1")
@@ -162,6 +165,9 @@ func main() {
       res.WriteHeader(500)
       return
     }
+    
+    // turn on the UV light
+    turn_off_uv_light()
     
     // close the  petri dish, turn off the UV light, close the oven, go home
     // python /root/labcontrol/labcontrol.py -S 1 -v -w /root/labcontrol -s closePetriDish_closeOven_goHome.py
