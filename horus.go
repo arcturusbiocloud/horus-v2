@@ -146,8 +146,9 @@ func main() {
     }
         
     // run scripts to open the oven, positioning on the grid, open the petri dish, turn on the UV light
-    // ...
-    // ...
+    // python /root/labcontrol/labcontrol.py -S 1 -v -w /root/labcontrol -s openOven_openPetriDish_putCamera.py
+    proc := exec.Command("python", "/root/labcontrol/labcontrol.py", "-S", slot, "-v", "-w", "/root/labcontrol", "-s", "openOven_openPetriDish_putCamera.py")
+    proc.Run()
     
     // take picture
     proc := exec.Command("v4l2-ctl", "-d", "/dev/video1", "-c", "focus_auto=1")
@@ -162,11 +163,10 @@ func main() {
     }
     
     // close the  petri dish, turn off the UV light, close the oven, go home
-    // ...
-    // ...
-
-    // serving image
-    res.Header().Set("Content-Type", "image/png")
+    // python /root/labcontrol/labcontrol.py -S 1 -v -w /root/labcontrol -s closePetriDish_closeOven_goHome.py
+    proc = exec.Command("python", "/root/labcontrol/labcontrol.py", "-S", slot, "-v", "-w", "/root/labcontrol", "-s", "closePetriDish_closeOven_goHome.py")
+    proc.Run()
+    
     f, err := os.Open("/root/horus-v2/bin/capture.png")
     if err != nil {
       log.Printf("err= %s", err.Error())
