@@ -70,7 +70,7 @@ func main() {
   
   // turn on the uv light at same time turning off the incubator and the tent light
   m.Get("/api/uv_light/on", func(r render.Render, params martini.Params) {
-    response_buf, err := serial_cmd("1")
+    response_buf, err := turn_on_uv_light()
     
     if err != nil {
       r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
@@ -85,7 +85,7 @@ func main() {
 
   // turn off the uv light at same time turning on the incubator and the tent light
   m.Get("/api/uv_light/off", func(r render.Render, params martini.Params) {
-    response_buf, err := serial_cmd("0")
+    response_buf, err := turn_off_uv_light()
     
     if err != nil {
       r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
@@ -100,7 +100,7 @@ func main() {
 
   // get the humidity and the temperature from the incubator
   m.Get("/api/incubator/stats", func(r render.Render, params martini.Params) {
-    response_buf, err := serial_cmd("2")
+    response_buf, err := get_incubator_stats()
     
     if err != nil {
       r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
@@ -206,6 +206,18 @@ func exe_cmd(cmd string) (int,error) {
   }
   go out.Wait()
   return out.Process.Pid, nil
+}
+
+func turn_on_uv_light() (string, error) {
+  return serial_cmd("1")
+}
+
+func turn_off_uv_light() (string, error) {
+  return serial_cmd("0")
+}
+
+func get_incubator_stats() (string, error) {
+  return serial_cmd("2")
 }
 
 func serial_cmd(cmd string) (string, error) {
