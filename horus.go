@@ -64,7 +64,7 @@ func main() {
   // check all the machine hardware
   m.Get("/api/online", func(r render.Render) {
     // test stack hardware
-    // ...
+    // ... send a ping to the arduino controller and check the robot online
     r.JSON(200, map[string]interface{}{"status": "true"})
   })
   
