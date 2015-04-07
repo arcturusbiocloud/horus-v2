@@ -22,12 +22,13 @@ import (
 var s *serial.Port
 
 func main() {
+  log.Printf("Horus-v2 bio server controller")
+  
+  // config martini handlers
   m := martini.Classic()
   m.Use(render.Renderer())
   m.Use(martini.Static("/root/horus-v2/streaming"))
 
-  log.Printf("Horus-v2 bio server controller")
-    
   // authenticate every request
   m.Use(auth.BasicFunc(func(username, password string) bool {
     return username == "arcturus" && password == "huxnGrbNfQFR"
@@ -39,7 +40,7 @@ func main() {
   
   // when connecting to an older revision Arduino, you need to wait a little while it resets.
 	time.Sleep(1 * time.Second)
-	  
+		  
   // execute a script and return the status
   m.Post("/api/project/:script_call", func(r render.Render, params martini.Params) {
     script_call := params["script_call"]
