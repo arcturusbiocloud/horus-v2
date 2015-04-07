@@ -160,6 +160,7 @@ func main() {
     if err != nil {
       log.Printf("err= %s", err.Error())
       res.WriteHeader(500)
+      return
     }
     
     // close the  petri dish, turn off the UV light, close the oven, go home
@@ -171,8 +172,12 @@ func main() {
     if err != nil {
       log.Printf("err= %s", err.Error())
       res.WriteHeader(500)
+      return
     }
     defer f.Close()
+    
+    // serving image
+    res.Header().Set("Content-Type", "image/png")
     io.Copy(res, f)
   })
     
