@@ -172,7 +172,7 @@ func main() {
   })
   
   // take a picture using the camera 1
-  m.Get("/api/camera_picture/:slot", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+  m.Get("/api/camera_picture/:slot/:uv", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
     // we cannot use two cameras at the same time
     turn_off_streaming()
     
@@ -194,8 +194,13 @@ func main() {
     proc.Run()
     
     // turn on the UV light
-    turn_on_uv_light()
-        
+    uv := params["uv"]
+    if uv == "uv_on" {
+      turn_on_uv_light()
+    } else {
+      turn_off_light()
+    }
+    
     // take picture
     // http://askubuntu.com/questions/211971/v4l2-ctl-exposure-auto-setting-fails
     // http://stackoverflow.com/questions/13407859/is-there-a-way-to-control-a-webcam-focus-in-pygame
@@ -215,7 +220,11 @@ func main() {
     }
     
     // turn on the UV light
-    turn_off_uv_light()
+    if uv == "uv_on" {
+      turn_off_uv_light()
+    } else {
+      turn_on_light()
+    }
         
     // close the  petri dish, turn off the UV light, close the oven, go home
     // python /root/labcontrol/labcontrol.py -S 1 -v -w /root/labcontrol -s closePetriDish_closeOven_goHome.py
