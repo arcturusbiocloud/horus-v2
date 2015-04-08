@@ -210,6 +210,10 @@ func main() {
     proc.Run()
     proc = exec.Command("v4l2-ctl", "-d", "/dev/video1", "-c", "focus_absolute=50")
     proc.Run()
+    // proc = exec.Command("v4l2-ctl", "-d", "/dev/video1", "-c", "exposure_auto_priority=0")
+    // proc.Run()
+    // proc = exec.Command("v4l2-ctl", "-d", "/dev/video1", "-c", "exposure_absolute=1500")
+    // proc.Run()
     proc = exec.Command("/root/horus-v2/bin/boneCV")
     err := proc.Run()
     if err != nil {
