@@ -41,19 +41,27 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
 * <http://kacangbawang.com/beagleboneblack-revc-debloat-part-1/>
     
 ## How to test    
-    # GET /api/online
+    # check the Arduino controller returning the temperature and humidity
     curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/online
     {"status":"Humidity: 35.40% Temperature: 29.90C"}
     # or
     {"status":"error", "error: ... "}
     
-    # turn camera 0 streaming on
+    # initialize the OpenPCR
+    curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/init_pcr
+    {"status":"OpenPCR initialized"}
+    
+    # zero the Modular Science robot
+    curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/zero_machine
+    {"status": "Modular science robot zeroed"}
+    
+    # turn camera 1 streaming on
     curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/camera_streaming/on
     {"status":"streaming"}
     # or
     {"status":"error", "error: ... "}
     
-    # turn camera 0 streaming off
+    # turn camera 1 streaming off
     curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/camera_streaming/off
     {"status": "streaming stopped"}
     # or

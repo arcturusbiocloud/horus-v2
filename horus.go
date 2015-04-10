@@ -71,7 +71,15 @@ func main() {
     proc.Run()
     running = false
     
-    r.JSON(200, map[string]interface{}{"status": "machine zeroed"})
+    r.JSON(200, map[string]interface{}{"status": "Modular science robot zeroed"})
+  })
+  
+  // zero the machine. WARNING: the robot should be at the proper position
+  m.Get("/api/init_pcr", func(r render.Render) {    
+    proc := exec.Command("bash", "/root/OpenPyCR/simple-pcr-run.sh")
+    proc.Run()
+    
+    r.JSON(200, map[string]interface{}{"status": "OpenPCR initialized"})
   })
   
   // turn on the camera 1 live streaming
