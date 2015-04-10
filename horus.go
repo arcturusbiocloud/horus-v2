@@ -169,6 +169,19 @@ func camera_picture(project_id int, slot string, uv_light bool, light bool) (err
   proc = exec.Command("bash", "/root/horus-v2/bin/camera-picture.sh")
   proc.Run()
   
+  go func() {
+    // post picture with curl instead of github.com/ddliu/go-httpclient because I am facing problems with the cacerts from the bbb
+    proc = exec.Command("curl", 
+                         "--insecure", 
+                         "-X", "POST", fmt.Sprintf("https://dashboard.arcturus.io/api/projects/%d/activities?access_token=55d28fc5783172b90fea425a2312b95a&key=5", project_id), 
+                         "-F", "content=@/root/horus-v2/bin/capture.png")
+    _, err := proc.CombinedOutput()
+
+    if err != nil {
+      fmt.Printf("camera_picture() project_id=%d err=%s\n", project_id, err.Error())
+    }
+  }()
+  
   // switch uv_light
   if (uv_light) {
     turn_off_uv_light()
@@ -184,19 +197,7 @@ func camera_picture(project_id int, slot string, uv_light bool, light bool) (err
   proc.Run()
 
   running = false
-  
-  // post picture with curl instead of github.com/ddliu/go-httpclient because I am facing problems with the cacerts from the bbb
-  proc = exec.Command("curl", 
-                       "--insecure", 
-                       "-X", "POST", fmt.Sprintf("https://dashboard.arcturus.io/api/projects/%d/activities?access_token=55d28fc5783172b90fea425a2312b95a&key=5", project_id), 
-                       "-F", "content=@/root/horus-v2/bin/capture.png")
-  _, err := proc.CombinedOutput()
     
-  if err != nil {
-      fmt.Printf("camera_picture() project_id=%d err=%s\n", project_id, err.Error())
-      return err
-  }
-  
   return nil
 }
 
