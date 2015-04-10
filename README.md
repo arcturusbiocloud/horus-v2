@@ -6,6 +6,9 @@ This project is responsible for manage the execution of the scripts on the Arctu
 ## Install dependencies
     go get github.com/go-martini/martini
     go get github.com/codegangsta/martini-contrib/render
+    go get github.com/martini-contrib/auth
+    go get github.com/tarm/serial
+    go get github.com/mitchellh/go-ps
 
 ## How to start
     go run main.go
@@ -24,9 +27,9 @@ Then compile your Gobot program with
     
 If you are running the official Angstrom or Debian linux through the usb->ethernet connection, you can simply upload your program and install it with
 
-    $ scp horus-v2 root@192.168.7.2:/usr/bin/
-    $ scp horus.service root@192.168.7.2:/lib/systemd/
-    $ ssh root@192.168.7.2
+    $ scp horus-v2 root@10.1.10.111:/usr/bin/
+    $ scp horus.service root@10.1.10.111:/lib/systemd/
+    $ ssh root@10.1.10.111
     $ cd /etc/systemd/system/
     $ ln /lib/systemd/horus.service horus.service
     $ systemctl daemon-reload
@@ -37,56 +40,31 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
 
 * <http://kacangbawang.com/beagleboneblack-revc-debloat-part-1/>
     
-## How to test
-    # POST /api/project/script_call
-    curl --user arcturus:huxnGrbNfQFR -X POST localhost:3000/api/project/sleep%2060
-    {"status":"running", "pid":14298,"script_call":"sleep 60"}
-
-    # GET /api/project/pid
-    curl --user arcturus:huxnGrbNfQFR -X GET localhost:3000/api/project/14224
-    {"pid":14298,"status":"alive"}
-    # or
-    {"status":"error", "err":"os: process already finished","pid":14298}
-    
+## How to test    
     # GET /api/online
     curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/online
-    {"status":"true"}
+    {"status":"Humidity: 35.40% Temperature: 29.90C"}
     # or
-    {"status":"error" ...}
-    
-    # turn UV light OFF
-    $ curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/uv_light/off
-    {"status":"uv light turned off"}
-    # or
-    {"status":"error" ...}
-    
-    # turn UV light ON
-    $ curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/uv_light/on
-    {"status":"uv light turned on"}
-    # or
-    {"status":"error" ...}
-    
-    # get the temperature and humidity stats
-    $ curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/incubator/stats
-    {"status":"Humidity: 37.20 %\tTemperature: 30.00 *C"}
-    # or
-    {"status":"error" ...}
+    {"status":"error", "error: ... "}
     
     # turn camera 0 streaming on
     curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/camera_streaming/on
     {"status":"streaming"}
     # or
-    {"status":"error" ...}
+    {"status":"error", "error: ... "}
     
     # turn camera 0 streaming off
     curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/camera_streaming/off
     {"status": "streaming stopped"}
     # or
-    {"status":"error" ...}
+    {"status":"error", "error: ..."}
     
-    # get a picture from camera 1 at a specific slot
-    curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/camera_picture/1-11
-    # the response is a png file or a 500 internal server error. it stops the camera 0 streaming
+    # get a picture from camera 0 at a specific slot and upload to a specific project at arcturus.io
+    # /api/take_picture/:project_id/:petri_dish_slot/uv_on|uv_off/light_on|light_off
+    curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/take_picture/2/5/uv_on/light_off
+    {"status":"Taking picture for the project 2 at the petri dish slot 5"}
+    # or
+    {"status":"error", "error":"Machine already ocuppied by another process."}
         
 ## Feature Roadmap
 
@@ -94,10 +72,10 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
   - [x] auto init BBB script
   - [x] serial port interface transilluminator
   - [x] serial port interface incubator
-  - [x] rest call to execute and check bash scripts status
   - [x] rest call to start video streaming
   - [x] rest call to take a picture from a specific slot
   - [x] same response format to all calls
   - [x] syntax sugar to serial devices
   - [x] basic authentication
-  - [ ] rest call to check the status of the hardware
+  - [x] rest call to check the status of the hardware
+  - [ ] rest call to make a experiment
