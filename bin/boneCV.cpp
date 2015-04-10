@@ -19,9 +19,14 @@
 using namespace std;
 using namespace cv;
 
-int main()
+int main(int argc, char ** argv)
 {
-    VideoCapture capture(1);
+    int video = 0;
+    
+    // parsing parameter
+    if (argc > 1) video = atoi(argv[1]);
+    
+    VideoCapture capture(video);
     capture.set(CV_CAP_PROP_FRAME_WIDTH,1920);
     capture.set(CV_CAP_PROP_FRAME_HEIGHT,1080);
     if(!capture.isOpened()){
