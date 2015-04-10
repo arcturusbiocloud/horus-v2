@@ -7,20 +7,19 @@ import (
   "github.com/tarm/serial"
   "github.com/mitchellh/go-ps"
   "os/exec"
-  "net/http"
   "time"
   "bufio"
   "log"
   "strings"
   "os"
-  "io"
   "strconv"
-  "syscall"
+  "fmt"
   "errors"
 )
 
 // serial port handle to communicate with the Arduino
 var s *serial.Port
+
 // handle to check if the machine is already executing some script 
 var running = false
 
@@ -49,100 +48,14 @@ func main() {
   s, _ = serial.OpenPort(c)
   
   // when connecting to an older revision Arduino, you need to wait a little while it resets.
-	time.Sleep(1 * time.Second)
+  time.Sleep(1 * time.Second)
 		  
-  // execute a script and return the status
-  m.Post("/api/project/:script_call", func(r render.Render, params martini.Params) {
-    script_call := params["script_call"]
-    // run a script
-    pid, err := exe_cmd(script_call)
-    if err != nil {
-      r.JSON(200, map[string]interface{}{"script_call": script_call, "status": "error", "error" : err.Error()})
-    } else {
-      // status will be running, not_found
-      r.JSON(200, map[string]interface{}{"script_call": script_call, "status": "running", "pid": pid})
-    }
-  })
-  
-  // get a status of a script previously executed
-  m.Get("/api/project/:pid", func(r render.Render, params martini.Params) {
-    pid := params["pid"]
-    
-    iPid, _ := strconv.Atoi(pid)
-    p, _ := os.FindProcess(iPid)
-    err := p.Signal(syscall.Signal(0))
-    if err != nil {
-      r.JSON(200, map[string]interface{}{"pid": iPid, "status": "error", "error": err.Error()})
-    } else {
-      r.JSON(200, map[string]interface{}{"pid": iPid, "status": "alive"})
-    }
-  })
-
   // check all the machine hardware
   m.Get("/api/online", func(r render.Render) {
+    running = true
     // test stack hardware
-    // ... send a ping to the arduino controller and check the robot online
-    r.JSON(200, map[string]interface{}{"status": "true"})
-  })
-  
-  // switch on and off the incubator and the tent light
-  m.Get("/api/light/:set", func(r render.Render, params martini.Params) {
-    var response_buf string
-    var err error
-    
-    if params["set"] == "on" {
-      response_buf, err = turn_on_light()
-    } else if params["set"] == "off" {
-      response_buf, err = turn_off_light()
-    } else {
-      r.JSON(200, map[string]interface{}{"status": "error", "error": "Parameter not supported."})
-      return
-    }
-    
-    if err != nil {
-      r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
-    } else {
-      if string(response_buf) == "3\r\n" || string(response_buf) == "4\r\n" {
-        r.JSON(200, map[string]interface{}{"status": "light switched"})
-      } else {
-        r.JSON(200, map[string]interface{}{"status": "error", "error": "unexpected response " + string(response_buf)})
-      }
-    } 
-  })  
-  
-  // turn on the uv light at same time turning off the incubator and the tent light
-  m.Get("/api/uv_light/on", func(r render.Render, params martini.Params) {
-    response_buf, err := turn_on_uv_light()
-    
-    if err != nil {
-      r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
-    } else {
-      if string(response_buf) != "1\r\n" {
-        r.JSON(200, map[string]interface{}{"status": "error", "error": "unexpected response " + string(response_buf)})
-      } else {
-        r.JSON(200, map[string]interface{}{"status": "uv light turned on"})
-      }
-    } 
-  })
-
-  // turn off the uv light at same time turning on the incubator and the tent light
-  m.Get("/api/uv_light/off", func(r render.Render, params martini.Params) {
-    response_buf, err := turn_off_uv_light()
-    
-    if err != nil {
-      r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
-    } else {
-      if string(response_buf) != "0\r\n" {
-        r.JSON(200, map[string]interface{}{"status": "error", "error": "unexpected response " + string(response_buf)})
-      } else {
-        r.JSON(200, map[string]interface{}{"status": "uv light turned off"})
-      }
-    }
-  })
-
-  // get the humidity and the temperature from the incubator
-  m.Get("/api/incubator/stats", func(r render.Render, params martini.Params) {
     response_buf, err := get_incubator_stats()
+    running = false
     
     if err != nil {
       r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
@@ -151,12 +64,23 @@ func main() {
     }
   })
   
-  // turn on the camera 0 live streaming
+  // zero the machine. WARNING: the robot should be at the proper position
+  m.Get("/api/zero_machine", func(r render.Render) {    
+    running = true
+    proc := exec.Command("python", "/root/labcontrol/labcontrol.py", "-v", "-w", "/root/labcontrol", "-s", "zero.py")
+    proc.Run()
+    running = false
+    
+    r.JSON(200, map[string]interface{}{"status": "machine zeroed"})
+  })
+  
+  // turn on the camera 1 live streaming
   m.Get("/api/camera_streaming/on", func(r render.Render) {    
     // kill any previous streaming
     turn_off_streaming()
     
-    _, err := exe_cmd("/root/horus-v2/bin/camera-streaming.sh")
+    // turn on streaming
+    _, err := turn_on_streaming()
     
     if err != nil {
       r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
@@ -164,93 +88,112 @@ func main() {
       r.JSON(200, map[string]interface{}{"status": "streaming"})
     }
   })
-  
-  // turn off the camera 0 live streaming
+    
+  // turn off the camera 1 live streaming
   m.Get("/api/camera_streaming/off", func(r render.Render) {        
     turn_off_streaming()
     r.JSON(200, map[string]interface{}{"status": "streaming stopped"})
   })
-  
-  // take a picture using the camera 1
-  m.Get("/api/camera_picture/:slot/:uv", func(res http.ResponseWriter, req *http.Request, params martini.Params) {
+    
+  // take a picture using the camera 0
+  m.Get("/api/take_picture/:project_id/:slot/:uv_light/:light", func(r render.Render, params martini.Params) {        
     // we cannot use two cameras at the same time
     turn_off_streaming()
     
-    // remove files
-    os.Remove("/root/horus-v2/bin/capture.png")
+    // get project_id     
+    project_id, _ := strconv.Atoi(params["project_id"])
     
-    // define slot
+    // get petri dish slot
     slot := params["slot"]
     iSlot, _ := strconv.Atoi(slot)
     if iSlot <= 0 || iSlot >=12 {
-      res.WriteHeader(500)
+      r.JSON(200, map[string]interface{}{"status": "error", "error": "Petri dish slot out of range."})
       return
     }
-        
-    // run scripts to open the oven, positioning on the grid, open the petri dish
-    // python /root/labcontrol/labcontrol.py -S 1 -v -w /root/labcontrol -s openOven_openPetriDish_putCamera.py
-    running = true
-    proc := exec.Command("python", "/root/labcontrol/labcontrol.py", "-S", slot, "-v", "-w", "/root/labcontrol", "-s", "openOven_openPetriDish_putCamera.py")
-    proc.Run()
     
-    // turn on the UV light
-    uv := params["uv"]
-    if uv == "uv_on" {
-      turn_on_uv_light()
+    // get uv_light parameter
+    var uv_light bool
+    if params["uv_light"] == "uv_on" {
+      uv_light = true
     } else {
-      turn_off_light()
+      uv_light = false
     }
     
-    // take picture
-    // http://askubuntu.com/questions/211971/v4l2-ctl-exposure-auto-setting-fails
-    // http://stackoverflow.com/questions/13407859/is-there-a-way-to-control-a-webcam-focus-in-pygame
-    proc = exec.Command("v4l2-ctl", "--set-fmt-video=width=1920,height=1080,pixelformat=1")
-    proc.Run()
-    proc = exec.Command("v4l2-ctl", "-d", "/dev/video1", "-c", "focus_auto=0")
-    proc.Run()
-    proc = exec.Command("v4l2-ctl", "-d", "/dev/video1", "-c", "focus_absolute=50")
-    proc.Run()
-    // proc = exec.Command("v4l2-ctl", "-d", "/dev/video1", "-c", "exposure_auto_priority=0")
-    // proc.Run()
-    // proc = exec.Command("v4l2-ctl", "-d", "/dev/video1", "-c", "exposure_absolute=1500")
-    // proc.Run()
-    proc = exec.Command("/root/horus-v2/bin/boneCV")
-    err := proc.Run()
-    if err != nil {
-      log.Printf("err= %s", err.Error())
-      res.WriteHeader(500)
-      running = false
-      return
-    }
-    
-    // turn on the UV light
-    if uv == "uv_on" {
-      turn_off_uv_light()
+    // get light parameter
+    var light bool
+    if params["light"] == "light_on" {
+      light = true
     } else {
-      turn_on_light()
+      light = false
     }
-        
-    // close the  petri dish, turn off the UV light, close the oven, go home
-    // python /root/labcontrol/labcontrol.py -S 1 -v -w /root/labcontrol -s closePetriDish_closeOven_goHome.py
-    proc = exec.Command("python", "/root/labcontrol/labcontrol.py", "-S", slot, "-v", "-w", "/root/labcontrol", "-s", "closePetriDish_closeOven_goHome.py")
-    proc.Run()
     
-    f, err := os.Open("/root/horus-v2/bin/capture.png")
-    if err != nil {
-      log.Printf("err= %s", err.Error())
-      res.WriteHeader(500)
-      running = false
-      return
-    }
-    defer f.Close()
+    go camera_picture(project_id, slot, uv_light, light)
     
-    // serving image
-    res.Header().Set("Content-Type", "image/png")
-    io.Copy(res, f)
-    running = false
+    r.JSON(200, map[string]interface{}{"status": fmt.Sprintf("Taking picture for the project %d at the petri dish slot %s", project_id, slot)})
   })
-    
+      
   m.Run()
+}
+
+func camera_picture(project_id int, slot string, uv_light bool, light bool) (error) {
+  // we cannot use two cameras at the same time
+  turn_off_streaming()
+  
+  // remove files
+  os.Remove("/root/horus-v2/bin/capture.png")
+  
+  // run scripts to open the oven, positioning on the grid, open the petri dish
+  running = true
+  proc := exec.Command("python", "/root/labcontrol/labcontrol.py", "-S", slot, "-v", "-w", "/root/labcontrol", "-s", "openOven_openPetriDish_putCamera.py")
+  proc.Run()
+    
+  // take picture with uv_light
+  if (uv_light) {
+    turn_on_uv_light()
+  } 
+  
+  // take picture with light or no light
+  if (light == false) {
+    turn_off_light()
+  }
+
+  // calling script to take picture
+  proc = exec.Command("bash", "/root/horus-v2/bin/camera-picture.sh")
+  proc.Run()
+  
+  // switch uv_light
+  if (uv_light) {
+    turn_off_uv_light()
+  } 
+  
+  // switch light
+  if (light == false) {
+    turn_on_light()
+  }
+  
+  // close the  petri dish, turn off the UV light, close the oven, go home
+  proc = exec.Command("python", "/root/labcontrol/labcontrol.py", "-S", slot, "-v", "-w", "/root/labcontrol", "-s", "closePetriDish_closeOven_goHome.py")
+  proc.Run()
+
+  running = false
+  
+  // post picture with curl instead of github.com/ddliu/go-httpclient because I am facing problems with the cacerts from the bbb
+  proc = exec.Command("curl", 
+                       "--insecure", 
+                       "-X", "POST", fmt.Sprintf("https://dashboard.arcturus.io/api/projects/%d/activities?access_token=55d28fc5783172b90fea425a2312b95a&key=5", project_id), 
+                       "-F", "content=@/root/horus-v2/bin/capture.png")
+  _, err := proc.CombinedOutput()
+    
+  if err != nil {
+      fmt.Printf("camera_picture() project_id=%d err=%s\n", project_id, err.Error())
+      return err
+  }
+  
+  return nil
+}
+
+func turn_on_streaming() (int, error) {
+  return exe_cmd("/root/horus-v2/bin/camera-streaming.sh")
 }
 
 func turn_off_streaming() {
