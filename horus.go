@@ -6,6 +6,7 @@ import (
   "github.com/martini-contrib/auth"
   "github.com/tarm/serial"
   "github.com/mitchellh/go-ps"
+  "net/http"
   "os/exec"
   "time"
   "bufio"
@@ -165,8 +166,66 @@ func main() {
     
     r.JSON(200, map[string]interface{}{"status": fmt.Sprintf("Taking picture for the project %d at the petri dish slot %s", project_id, slot)})
   })
+  
+  m.Post("/api/run_experiment", func(req *http.Request, r render.Render, params martini.Params) {
+    // get project_id   
+    project_id := req.FormValue("project_id")
+    
+    // get petri dish slot
+    slot := req.FormValue("slot")
+    iSlot, _ := strconv.Atoi(slot)
+    if iSlot <= 0 || iSlot >=12 {
+      r.JSON(200, map[string]interface{}{"status": "error", "error": "Petri dish slot out of range."})
+      return
+    }
+    
+    // get genetic parts
+    genetic_parts := req.FormValue("genetic_parts")
+                
+    go run_experiment(project_id, slot, genetic_parts)
+    
+    r.JSON(200, map[string]interface{}{"status": fmt.Sprintf("Running experiment for the project %s at the petri dish slot %s with the genetic parts %s", project_id, slot, genetic_parts)})
+  })
       
   m.Run()
+}
+
+func run_experiment(project_id string, slot string, genetic_parts string) (error) {
+    // set the running state
+    running = true
+
+    // turn on streaming
+    turn_on_streaming()
+    
+    // kill the streaming after 5 minutes
+    go func() {
+      time.Sleep(300 * time.Second)
+      turn_off_streaming()
+      
+      // get the latest video processed by cine.io. It takes some time to encode the video
+      // ...
+      // update the project with the final video
+      // ... 
+    }()
+    
+    // send the assembly update to arcturus.io project timeline
+    proc := exec.Command("curl", 
+                         "--insecure", 
+                         "-X", "POST", fmt.Sprintf("https://dashboard.arcturus.io/api/projects/%s/activities?access_token=55d28fc5783172b90fea425a2312b95a&key=1", project_id))
+    _, err := proc.CombinedOutput()
+
+    if err != nil {
+      fmt.Printf("run_experiment() project_id=%d err=%s\n", project_id, err.Error())
+    }
+    
+    // run the assembly process. it calls the transforming, plating and incubating
+    go func() {
+      proc = exec.Command("python", "/root/labcontrol/labcontrol.py", "-S", slot, "-v", "-w", "/root/labcontrol", "-A", genetic_parts, "-P", project_id, "-s", "assembly_protocol.py")
+      proc.Run()
+      running = false
+    }()
+    
+    return err        
 }
 
 func camera_picture(project_id int, slot string, uv_light bool, light bool) (error) {

@@ -73,7 +73,9 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
     {"status":"Taking picture for the project 2 at the petri dish slot 5"}
     # or
     {"status":"error", "error":"Machine already ocuppied by another process."}
-        
+     
+    # run a experiment
+    curl --user arcturus:huxnGrbNfQFR --data "project_id=7&slot=4&genetic_parts={'anchor': 'clhor', 'promoter': 'very_strong', 'rbs': 'very_strong', 'gene': 'gfp', 'terminator': 'ter', 'cap': 'high'}" -v -X POST 10.1.10.111:3000/api/run_experiment 
 ## Feature Roadmap
 
   - [x] ARM cross compilation
@@ -86,4 +88,4 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
   - [x] syntax sugar to serial devices
   - [x] basic authentication
   - [x] rest call to check the status of the hardware
-  - [ ] rest call to make a experiment
+  - [x] rest call to make a experiment
