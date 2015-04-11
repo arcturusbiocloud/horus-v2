@@ -82,6 +82,32 @@ func main() {
     r.JSON(200, map[string]interface{}{"status": "OpenPCR initialized"})
   })
   
+  // turn on uv light
+  m.Get("/api/uv_light/on", func(r render.Render) {    
+    
+    // turn on uv_light
+    buf, err := turn_on_uv_light()
+    
+    if err != nil {
+      r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
+    } else {
+      r.JSON(200, map[string]interface{}{"status": buf})
+    }
+  })
+  
+  // turn off uv light
+  m.Get("/api/uv_light/off", func(r render.Render) {    
+    
+    // turn off uv_light
+    buf, err := turn_off_uv_light()
+    
+    if err != nil {
+      r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
+    } else {
+      r.JSON(200, map[string]interface{}{"status": buf})
+    }
+  })
+  
   // turn on the camera 1 live streaming
   m.Get("/api/camera_streaming/on", func(r render.Render) {    
     // kill any previous streaming
