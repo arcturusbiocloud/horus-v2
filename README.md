@@ -75,7 +75,14 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
     {"status":"error", "error":"Machine already ocuppied by another process."}
      
     # run a experiment
-    curl --user arcturus:huxnGrbNfQFR --data "project_id=7&slot=4&genetic_parts={'anchor': 'clhor', 'promoter': 'very_strong', 'rbs': 'very_strong', 'gene': 'gfp', 'terminator': 'ter', 'cap': 'high'}" -v -X POST 10.1.10.111:3000/api/run_experiment 
+    curl --user arcturus:huxnGrbNfQFR --data "project_id=4&slot=5&genetic_parts={'anchor': 'clhor', 'promoter': 'very_strong', 'rbs': 'very_strong', 'gene': 'gfp', 'terminator': 'ter', 'cap': 'high'}" -v -X POST 10.1.10.111:3000/api/run_experiment
+    {"status": "Running experiment for the project 1 at the petri dish slot 5 or 6 with the genetic parts ..."}
+    # or
+    {"status": "error", "error": "Machine already ocuppied by another process."}
+    # or
+    {"status": "error", "error": "Petri dish slot out of range."}
+    
+     
 ## Feature Roadmap
 
   - [x] ARM cross compilation
