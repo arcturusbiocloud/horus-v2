@@ -186,8 +186,106 @@ func main() {
     
     r.JSON(200, map[string]interface{}{"status": fmt.Sprintf("Running experiment for the project %s at the petri dish slot %s with the genetic parts %s", project_id, slot, genetic_parts)})
   })
+  
+  m.Post("/api/run_virtual_experiment", func(req *http.Request, r render.Render, params martini.Params) {
+    // get project_id   
+    project_id := req.FormValue("project_id")
+    
+    // get petri dish slot
+    slot := req.FormValue("slot")
+    iSlot, _ := strconv.Atoi(slot)
+    if iSlot <= 0 || iSlot >=12 {
+      r.JSON(200, map[string]interface{}{"status": "error", "error": "Petri dish slot out of range."})
+      return
+    }
+    
+    // get genetic parts
+    genetic_parts := req.FormValue("genetic_parts")
+                
+    go run_virtual_experiment(project_id, slot, genetic_parts)
+    
+    r.JSON(200, map[string]interface{}{"status": fmt.Sprintf("Running experiment for the project %s at the petri dish slot %s with the genetic parts %s", project_id, slot, genetic_parts)})    
+  })
       
   m.Run()
+}
+
+func run_virtual_experiment(project_id string, slot string, genetic_parts string) (error) {
+  // set the running state
+  running = true
+  
+  // turn on streaming
+  turn_on_streaming()
+  
+  // kill the streaming after 5 minutes
+  go func() {
+    time.Sleep(300 * time.Second)
+    turn_off_streaming()
+    
+    // get the latest video processed by cine.io. It takes some time to encode the video
+    // by now we are not getting the final video but adding a previous recorded
+    // update the project with the final video
+    proc := exec.Command("curl",
+                          "--insecure",
+                          "-X", "PUT", fmt.Sprintf("https://www.arcturus.io/api/projects/%s?access_token=55d28fc5783172b90fea425a2312b95a&recording_file_name=XJRl3Bsq.20150411T022627.mp4", project_id))
+    _, err := proc.CombinedOutput()
+    if err != nil {
+      fmt.Printf("run_experiment() project_id=%d err=%s\n", project_id, err.Error())
+    }                                                     
+  }()
+  
+  // send the assembly update to arcturus.io project timeline
+  proc := exec.Command("curl", 
+                       "--insecure", 
+                       "-X", "POST", fmt.Sprintf("https://www.arcturus.io/api/projects/%s/activities?access_token=55d28fc5783172b90fea425a2312b95a&key=1", project_id))
+  _, err := proc.CombinedOutput()
+  if err != nil {
+    fmt.Printf("run_experiment() project_id=%d err=%s\n", project_id, err.Error())
+  }
+
+  // send the other fake updates to the project timeline
+  go func() {
+    // wait to update the timeline status
+    time.Sleep(60 * time.Second)
+    
+    // send the transform update to arcturus.io project timeline
+    proc := exec.Command("curl", 
+                         "--insecure", 
+                         "-X", "POST", fmt.Sprintf("https://www.arcturus.io/api/projects/%s/activities?access_token=55d28fc5783172b90fea425a2312b95a&key=2", project_id))
+    _, err := proc.CombinedOutput()
+    if err != nil {
+      fmt.Printf("run_experiment() project_id=%d err=%s\n", project_id, err.Error())
+    }
+
+    // wait to update the timeline status
+    time.Sleep(60 * time.Second)
+
+    // send the plating update to arcturus.io project timeline
+    proc = exec.Command("curl", 
+                         "--insecure", 
+                         "-X", "POST", fmt.Sprintf("https://www.arcturus.io/api/projects/%s/activities?access_token=55d28fc5783172b90fea425a2312b95a&key=3", project_id))
+    _, err = proc.CombinedOutput()
+    if err != nil {
+      fmt.Printf("run_experiment() project_id=%d err=%s\n", project_id, err.Error())
+    }
+    
+    // wait to update the timeline status
+    time.Sleep(60 * time.Second)
+    
+    // send the incubating update to arcturus.io project timeline
+    proc = exec.Command("curl", 
+                         "--insecure", 
+                         "-X", "POST", fmt.Sprintf("https://www.arcturus.io/api/projects/%s/activities?access_token=55d28fc5783172b90fea425a2312b95a&key=4", project_id))
+    _, err = proc.CombinedOutput()
+    if err != nil {
+      fmt.Printf("run_experiment() project_id=%d err=%s\n", project_id, err.Error())
+    }
+
+    // set the running state
+    running = false 
+  }()
+  
+  return err  
 }
 
 func run_experiment(project_id string, slot string, genetic_parts string) (error) {
