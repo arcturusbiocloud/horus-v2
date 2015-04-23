@@ -315,9 +315,8 @@ func run_experiment(project_id string, slot string, genetic_parts string) (error
     // send the assembly update to arcturus.io project timeline
     proc := exec.Command("curl", 
                          "--insecure", 
-                         "-X", "POST", fmt.Sprintf("https://dashboard.arcturus.io/api/projects/%s/activities?access_token=55d28fc5783172b90fea425a2312b95a&key=1", project_id))
+                         "-X", "POST", fmt.Sprintf("https://www.arcturus.io/api/projects/%s/activities?access_token=55d28fc5783172b90fea425a2312b95a&key=1", project_id))
     _, err := proc.CombinedOutput()
-
     if err != nil {
       fmt.Printf("run_experiment() project_id=%d err=%s\n", project_id, err.Error())
     }
@@ -362,7 +361,7 @@ func camera_picture(project_id int, slot string, uv_light bool, light bool) (err
     // post picture with curl instead of github.com/ddliu/go-httpclient because I am facing problems with the cacerts from the bbb
     proc = exec.Command("curl", 
                          "--insecure", 
-                         "-X", "POST", fmt.Sprintf("https://dashboard.arcturus.io/api/projects/%d/activities?access_token=55d28fc5783172b90fea425a2312b95a&key=5", project_id), 
+                         "-X", "POST", fmt.Sprintf("https://www.arcturus.io/api/projects/%d/activities?access_token=55d28fc5783172b90fea425a2312b95a&key=5", project_id), 
                          "-F", "content=@/root/horus-v2/bin/capture.png")
     _, err := proc.CombinedOutput()
 
