@@ -301,9 +301,15 @@ func run_experiment(project_id string, slot string, genetic_parts string) (error
       turn_off_streaming()
       
       // get the latest video processed by cine.io. It takes some time to encode the video
-      // ...
+      // by now we are not getting the final video but adding a previous recorded
       // update the project with the final video
-      // ... 
+      proc := exec.Command("curl",
+                            "--insecure",
+                            "-X", "PUT", fmt.Sprintf("https://www.arcturus.io/api/projects/%s?access_token=55d28fc5783172b90fea425a2312b95a&recording_file_name=XJRl3Bsq.20150411T022627.mp4", project_id))
+      _, err := proc.CombinedOutput()
+      if err != nil {
+        fmt.Printf("run_experiment() project_id=%d err=%s\n", project_id, err.Error())
+      }                                                     
     }()
     
     // send the assembly update to arcturus.io project timeline
