@@ -323,6 +323,9 @@ func run_experiment(project_id string, slot string, genetic_parts string) (error
     
     // run the assembly process. it calls the transforming, plating and incubating
     go func() {
+      buf := ""
+      fmt.Sprintf(buf, "cmd: python /root/labcontrol/labcontrol.py -S %s -v -w /root/labcontrol -A %s -P %s -s assembly_protocol.py", slot, genetic_parts, project_id)
+      log.Printf(buf)
       proc = exec.Command("python", "/root/labcontrol/labcontrol.py", "-S", slot, "-v", "-w", "/root/labcontrol", "-A", genetic_parts, "-P", project_id, "-s", "assembly_protocol.py")
       proc.Run()
       running = false
