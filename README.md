@@ -42,40 +42,40 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
     
 ## How to test    
     # check the Arduino controller returning the temperature and humidity
-    curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/online
+    curl --user arcturus:huxnGrbNfQFR -X GET 192.168.7.42:3000/api/online
     {"status":"Humidity: 35.40% Temperature: 29.90C"}
     # or
     {"status":"error", "error: ... "}
     
     # initialize the OpenPCR
-    curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/init_pcr
+    curl --user arcturus:huxnGrbNfQFR -X GET 192.168.7.42:3000/api/init_pcr
     {"status":"OpenPCR initialized"}
     
     # zero the Modular Science robot
-    curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/zero_machine
+    curl --user arcturus:huxnGrbNfQFR -X GET 192.168.7.42:3000/api/zero_machine
     {"status": "Modular science robot zeroed"}
     
     # turn camera 1 streaming on
-    curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/camera_streaming/on
+    curl --user arcturus:huxnGrbNfQFR -X GET 192.168.7.42:3000/api/camera_streaming/on
     {"status":"streaming"}
     # or
     {"status":"error", "error: ... "}
     
     # turn camera 1 streaming off
-    curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/camera_streaming/off
+    curl --user arcturus:huxnGrbNfQFR -X GET 192.168.7.42:3000/api/camera_streaming/off
     {"status": "streaming stopped"}
     # or
     {"status":"error", "error: ..."}
     
     # get a picture from camera 0 at a specific slot and upload to a specific project at arcturus.io
     # /api/take_picture/:project_id/:petri_dish_slot/uv_on|uv_off/light_on|light_off
-    curl --user arcturus:huxnGrbNfQFR -X GET 10.1.10.111:3000/api/take_picture/2/5/uv_on/light_off
+    curl --user arcturus:huxnGrbNfQFR -X GET 192.168.7.42:3000/api/take_picture/2/5/uv_on/light_off
     {"status":"Taking picture for the project 2 at the petri dish slot 5"}
     # or
     {"status":"error", "error":"Machine already ocuppied by another process."}
      
     # run a experiment
-    curl --user arcturus:huxnGrbNfQFR --data "project_id=4&slot=5&genetic_parts={'anchor': 'clhor', 'promoter': 'very_strong', 'rbs': 'very_strong', 'gene': 'gfp', 'terminator': 'ter', 'cap': 'high'}" -v -X POST 10.1.10.111:3000/api/run_experiment
+    curl --user arcturus:huxnGrbNfQFR --data "project_id=4&slot=5&genetic_parts={'anchor': 'clhor', 'promoter': 'very_strong', 'rbs': 'very_strong', 'gene': 'gfp', 'terminator': 'ter', 'cap': 'high'}" -v -X POST 192.168.7.42:3000/api/run_experiment
     {"status": "Running experiment for the project 1 at the petri dish slot 5 or 6 with the genetic parts ..."}
     # or
     {"status": "error", "error": "Machine already ocuppied by another process."}
