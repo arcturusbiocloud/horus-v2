@@ -3,7 +3,7 @@
 cd /root/horus-v2/bin
 
 # set the autofocus on
-v4l2-ctl -d /dev/video1 -c focus_auto=1
+v4l2-ctl -d /dev/video1 -c focus_auto=0
 
 # Next line not necessary if you are using my -F option on capture
 v4l2-ctl --set-fmt-video=width=1920,height=1080,pixelformat=1
