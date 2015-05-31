@@ -214,13 +214,14 @@ func run_virtual_experiment(project_id string, slot string, genetic_parts string
   // set the running state
   running = true
   
-  // turn on streaming
-  turn_on_streaming()
+  // turn on virtual streaming
+  go func() {
+    exe_cmd("avconv -re -i /root/horus-v2/streaming/XJRl3Bsq.20150411T022627.mp4 -f flv rtmp://publish-sfo1.cine.io/live/XJRl3Bsq?group40")
+  }
   
   // kill the streaming after 5 minutes
   go func() {
     time.Sleep(300 * time.Second)
-    turn_off_streaming()
     
     // get the latest video processed by cine.io. It takes some time to encode the video
     // by now we are not getting the final video but adding a previous recorded
