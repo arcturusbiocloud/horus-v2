@@ -16,6 +16,7 @@ import (
   "strconv"
   "fmt"
   "errors"
+  "path/filepath"
 )
 
 // serial port handle to communicate with the Arduino
@@ -23,14 +24,17 @@ var s *serial.Port
 
 // handle to check if the machine is already executing some script 
 var running = false
+var dir = ""
 
 func main() {
-  log.Printf("Horus-v2 bio server controller")
+  // get execution path
+  dir, _ = filepath.Abs(filepath.Dir(os.Args[0]))
+  log.Printf("Horus-v2 bio server controller running at %s", dir)
   
   // config martini handlers
   m := martini.Classic()
   m.Use(render.Renderer())
-  m.Use(martini.Static("/root/horus-v2/streaming"))
+  m.Use(martini.Static(dir + "/streaming"))
 
   // authenticate every request
   m.Use(auth.BasicFunc(func(username, password string) bool {
@@ -68,7 +72,7 @@ func main() {
   // zero the machine. WARNING: the robot should be at the proper position
   m.Get("/api/zero_machine", func(r render.Render) {    
     running = true
-    proc := exec.Command("python", "/root/labcontrol/labcontrol.py", "-v", "-w", "/root/labcontrol", "-s", "zero.py")
+    proc := exec.Command("python", filepath.Dir(dir) + "/labcontrol/labcontrol.py", "-v", "-w", filepath.Dir(dir) + "/labcontrol", "-s", "zero.py")
     proc.Run()
     running = false
     
@@ -77,7 +81,7 @@ func main() {
   
   // zero the machine. WARNING: the robot should be at the proper position
   m.Get("/api/init_pcr", func(r render.Render) {    
-    proc := exec.Command("bash", "/root/OpenPyCR/simple-pcr-run.sh")
+    proc := exec.Command("bash", filepath.Dir(dir) + "/OpenPyCR/simple-pcr-run.sh")
     proc.Run()
     
     r.JSON(200, map[string]interface{}{"status": "OpenPCR initialized"})
@@ -325,9 +329,9 @@ func run_experiment(project_id string, slot string, genetic_parts string) (error
     // run the assembly process. it calls the transforming, plating and incubating
     go func() {
       buf := ""
-      fmt.Sprintf(buf, "cmd: python /root/labcontrol/labcontrol.py -S %s -v -w /root/labcontrol -A %s -P %s -s assembly_protocol.py", slot, genetic_parts, project_id)
+      fmt.Sprintf(buf, "cmd: python " + filepath.Dir(dir) + "/labcontrol/labcontrol.py -S %s -v -w " + filepath.Dir(dir) + "/labcontrol -A %s -P %s -s assembly_protocol.py", slot, genetic_parts, project_id)
       log.Printf(buf)
-      proc = exec.Command("python", "/root/labcontrol/labcontrol.py", "-S", slot, "-v", "-w", "/root/labcontrol", "-A", genetic_parts, "-P", project_id, "-s", "assembly_protocol.py")
+      proc = exec.Command("python", filepath.Dir(dir) + "/labcontrol/labcontrol.py", "-S", slot, "-v", "-w", filepath.Dir(dir) + "/labcontrol", "-A", genetic_parts, "-P", project_id, "-s", "assembly_protocol.py")
       proc.Run()
       running = false
     }()
@@ -340,11 +344,11 @@ func camera_picture(project_id int, slot string, uv_light bool, light bool) (err
   turn_off_streaming()
   
   // remove files
-  os.Remove("/root/horus-v2/bin/capture.png")
+  os.Remove(filepath.Dir(dir) + "/horus-v2/bin/capture.png")
   
   // run scripts to open the oven, positioning on the grid, open the petri dish
   running = true
-  proc := exec.Command("python", "/root/labcontrol/labcontrol.py", "-S", slot, "-v", "-w", "/root/labcontrol", "-s", "openOven_openPetriDish_putCamera.py")
+  proc := exec.Command("python", filepath.Dir(dir) + "/labcontrol/labcontrol.py", "-S", slot, "-v", "-w", filepath.Dir(dir) + "/labcontrol", "-s", "openOven_openPetriDish_putCamera.py")
   proc.Run()
     
   // take picture with uv_light
@@ -358,7 +362,7 @@ func camera_picture(project_id int, slot string, uv_light bool, light bool) (err
   }
 
   // calling script to take picture
-  proc = exec.Command("bash", "/root/horus-v2/bin/camera-picture.sh")
+  proc = exec.Command("bash", filepath.Dir(dir) + "/horus-v2/bin/camera-picture.sh")
   proc.Run()
   
   go func() {
@@ -366,7 +370,7 @@ func camera_picture(project_id int, slot string, uv_light bool, light bool) (err
     proc = exec.Command("curl", 
                          "--insecure", 
                          "-X", "POST", fmt.Sprintf("https://www.arcturus.io/api/projects/%d/activities?access_token=55d28fc5783172b90fea425a2312b95a&key=5", project_id), 
-                         "-F", "content=@/root/horus-v2/bin/capture.png")
+                         "-F", "content=@"+ filepath.Dir(dir) + "/horus-v2/bin/capture.png")
     _, err := proc.CombinedOutput()
 
     if err != nil {
@@ -385,7 +389,7 @@ func camera_picture(project_id int, slot string, uv_light bool, light bool) (err
   }
   
   // close the  petri dish, turn off the UV light, close the oven, go home
-  proc = exec.Command("python", "/root/labcontrol/labcontrol.py", "-S", slot, "-v", "-w", "/root/labcontrol", "-s", "closePetriDish_closeOven_goHome.py")
+  proc = exec.Command("python", filepath.Dir(dir) + "/labcontrol/labcontrol.py", "-S", slot, "-v", "-w", filepath.Dir(dir) + "/labcontrol", "-s", "closePetriDish_closeOven_goHome.py")
   proc.Run()
 
   running = false
@@ -394,7 +398,7 @@ func camera_picture(project_id int, slot string, uv_light bool, light bool) (err
 }
 
 func turn_on_streaming() (int, error) {
-  return exe_cmd("/root/horus-v2/bin/camera-streaming.sh")
+  return exe_cmd(filepath.Dir(dir) + "/horus-v2/bin/camera-streaming.sh")
 }
 
 func turn_off_streaming() {
