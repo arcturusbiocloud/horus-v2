@@ -41,7 +41,7 @@ int main(int argc, char ** argv)
     }
     // cvtColor(frame, edges, CV_BGR2GRAY);
     // Canny(edges, edges, 0, 30, 3);
-    // imwrite("/root/horus-v2/bin/edges.png", edges);
-    imwrite("/root/horus-v2/bin/capture.png", frame);
+    // imwrite("edges.png", edges);
+    imwrite("capture.png", frame);
     return 0;
 }
