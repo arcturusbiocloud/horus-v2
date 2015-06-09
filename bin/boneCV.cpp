@@ -10,6 +10,7 @@
  */
 
 /*
+ * sudo apt-get install libopencv-dev
  * build with: g++ -O2 `pkg-config --cflags --libs opencv` boneCV.cpp -o boneCV
  *
  */
