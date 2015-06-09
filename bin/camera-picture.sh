@@ -10,6 +10,10 @@ v4l2-ctl --set-fmt-video=width=1920,height=1080,pixelformat=1
 # http://askubuntu.com/questions/211971/v4l2-ctl-exposure-auto-setting-fails
 # http://stackoverflow.com/questions/13407859/is-there-a-way-to-control-a-webcam-focus-in-pygame
 v4l2-ctl -d /dev/video0 -c focus_auto=0
-v4l2-ctl -d /dev/video0 -c focus_absolute=50
+
+# bbb
+#v4l2-ctl -d /dev/video0 -c focus_absolute=100
+# rpi2
+v4l2-ctl -d /dev/video0 -c focus_absolute=80
 
 ./boneCV 0
