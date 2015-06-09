@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd /root/horus-v2/bin
+cd ~/horus-v2/bin
 
 # Next line not necessary if you are using my -F option on capture
 v4l2-ctl --set-fmt-video=width=1920,height=1080,pixelformat=1
