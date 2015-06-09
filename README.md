@@ -82,6 +82,18 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
     # or
     {"status": "error", "error": "Petri dish slot out of range."}
     
+    # turn on the centrifuge
+    curl --user arcturus:huxnGrbNfQFR -X GET 192.168.7.41:3000/api/centrifuge/on
+    {"status":"5\r\n"}
+    # or
+    {"status":"error", "error: ... "}
+    
+    # turn off the centrifuge
+    curl --user arcturus:huxnGrbNfQFR -X GET 192.168.7.41:3000/api/centrifuge/off
+    {"status":"6\r\n"}
+    # or
+    {"status":"error", "error: ... "}
+    
      
 ## Feature Roadmap
 

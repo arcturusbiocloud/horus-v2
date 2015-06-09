@@ -113,6 +113,32 @@ func main() {
     }
   })
   
+  // turn on centrifuge
+  m.Get("/api/centrifuge/on", func(r render.Render) {    
+    
+    // turn on centrifuge
+    buf, err := turn_on_centrifuge()
+    
+    if err != nil {
+      r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
+    } else {
+      r.JSON(200, map[string]interface{}{"status": buf})
+    }
+  })
+  
+  // turn off centrifuge
+  m.Get("/api/centrifuge/off", func(r render.Render) {    
+    
+    // turn off centrifuge
+    buf, err := turn_off_centrifuge()
+    
+    if err != nil {
+      r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
+    } else {
+      r.JSON(200, map[string]interface{}{"status": buf})
+    }
+  })
+  
   // turn on the camera 1 live streaming
   m.Get("/api/camera_streaming/on", func(r render.Render) {    
     // kill any previous streaming
@@ -425,12 +451,12 @@ func exe_cmd(cmd string) (int,error) {
   return out.Process.Pid, nil
 }
 
-func turn_on_uv_light() (string, error) {
-  return serial_cmd("1")
-}
-
 func turn_off_uv_light() (string, error) {
   return serial_cmd("0")
+}
+
+func turn_on_uv_light() (string, error) {
+  return serial_cmd("1")
 }
 
 func get_incubator_stats() (string, error) {
@@ -443,6 +469,14 @@ func turn_off_light() (string, error) {
 
 func turn_on_light() (string, error) {
   return serial_cmd("4")
+}
+
+func turn_on_centrifuge() (string, error) {
+  return serial_cmd("5")
+}
+
+func turn_off_centrifuge() (string, error) {
+  return serial_cmd("6")
 }
 
 func serial_cmd(cmd string) (string, error) {
