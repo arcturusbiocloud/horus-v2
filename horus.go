@@ -139,6 +139,32 @@ func main() {
     }
   })
   
+  // turn on shaker
+  m.Get("/api/shaker/on", func(r render.Render) {    
+    
+    // turn on shaker
+    buf, err := turn_on_shaker()
+    
+    if err != nil {
+      r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
+    } else {
+      r.JSON(200, map[string]interface{}{"status": buf})
+    }
+  })
+  
+  // turn off shaker
+  m.Get("/api/shaker/off", func(r render.Render) {    
+    
+    // turn off shaker
+    buf, err := turn_off_shaker()
+    
+    if err != nil {
+      r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
+    } else {
+      r.JSON(200, map[string]interface{}{"status": buf})
+    }
+  })
+  
   // turn on the camera 1 live streaming
   m.Get("/api/camera_streaming/on", func(r render.Render) {    
     // kill any previous streaming

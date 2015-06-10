@@ -94,6 +94,18 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
     # or
     {"status":"error", "error: ... "}
     
+    # turn on the shaker
+    curl --user arcturus:huxnGrbNfQFR -X GET 192.168.7.41:3000/api/shaker/on
+    {"status":"7\r\n"}
+    # or
+    {"status":"error", "error: ... "}
+    
+    # turn off the shaker
+    curl --user arcturus:huxnGrbNfQFR -X GET 192.168.7.41:3000/api/shaker/off
+    {"status":"8\r\n"}
+    # or
+    {"status":"error", "error: ... "}
+    
      
 ## Feature Roadmap
 
