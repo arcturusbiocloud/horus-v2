@@ -165,6 +165,32 @@ func main() {
     }
   })
   
+  // turn on gel
+  m.Get("/api/gel/on", func(r render.Render) {    
+    
+    // turn on gel
+    buf, err := turn_on_gel()
+    
+    if err != nil {
+      r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
+    } else {
+      r.JSON(200, map[string]interface{}{"status": buf})
+    }
+  })
+  
+  // turn off gel
+  m.Get("/api/gel/off", func(r render.Render) {    
+    
+    // turn off gel
+    buf, err := turn_off_gel()
+    
+    if err != nil {
+      r.JSON(200, map[string]interface{}{"status": "error", "error": err.Error()})
+    } else {
+      r.JSON(200, map[string]interface{}{"status": buf})
+    }
+  })
+    
   // turn on the camera 1 live streaming
   m.Get("/api/camera_streaming/on", func(r render.Render) {    
     // kill any previous streaming
@@ -512,6 +538,15 @@ func turn_on_shaker() (string, error) {
 func turn_off_shaker() (string, error) {
   return serial_cmd("8")
 }
+
+func turn_on_gel() (string, error) {
+  return serial_cmd("9")
+}
+
+func turn_off_gel() (string, error) {
+  return serial_cmd("A")
+}
+
 func serial_cmd(cmd string) (string, error) {
   // check the serial port
   if s == nil {
