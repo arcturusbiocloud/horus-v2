@@ -36,6 +36,13 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
     $ systemctl start horus.service
     $ systemctl enable horus.service
     
+## How to install on Rpi2
+
+If you are running the Raspbian
+
+    $ sudo cp init-scripts/horus-v2.sh /etc/init.d/
+    $ sudo update-rc.d horus-v2.sh defaults    
+    
 ## How to clean the BBB
 
 * <http://kacangbawang.com/beagleboneblack-revc-debloat-part-1/>
