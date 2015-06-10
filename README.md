@@ -106,6 +106,18 @@ If you are running the official Angstrom or Debian linux through the usb->ethern
     # or
     {"status":"error", "error: ... "}
     
+    # turn on the gel
+    curl --user arcturus:huxnGrbNfQFR -X GET 192.168.7.41:3000/api/gel/on
+    {"status":"9\r\n"}
+    # or
+    {"status":"error", "error: ... "}
+    
+    # turn off the gel
+    curl --user arcturus:huxnGrbNfQFR -X GET 192.168.7.41:3000/api/gel/off
+    {"status":"A\r\n"}
+    # or
+    {"status":"error", "error: ... "}
+    
      
 ## Feature Roadmap
 

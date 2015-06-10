@@ -505,6 +505,13 @@ func turn_off_centrifuge() (string, error) {
   return serial_cmd("6")
 }
 
+func turn_on_shaker() (string, error) {
+  return serial_cmd("7")
+}
+
+func turn_off_shaker() (string, error) {
+  return serial_cmd("8")
+}
 func serial_cmd(cmd string) (string, error) {
   // check the serial port
   if s == nil {
