@@ -125,6 +125,12 @@ If you are running the Raspbian
     # or
     {"status":"error", "error: ... "}
     
+    # get petri dish picture on the uv light chamber
+    http://arcturus:huxnGrbNfQFR@horus01.arcturus.io:3001/api/camera_picture_petri_dish/uv
+    
+    # get petri dish picture on the white light chamber
+    http://arcturus:huxnGrbNfQFR@horus01.arcturus.io:3001/api/camera_picture_petri_dish/white
+    
      
 ## Feature Roadmap
 
