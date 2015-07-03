@@ -7,7 +7,7 @@ HORUS_BINARY=/home/pi/horus-v2/horus-v2
 case "$1" in
   start)
     echo "Starting horus-v2"
-    $HORUS_BINARY 1>$OUT_LOG 2>$OUT_LOG &
+    PORT=3001 $HORUS_BINARY 1>$OUT_LOG 2>$OUT_LOG &
     ;;
   stop)
     echo "Stopping horus-v2"
