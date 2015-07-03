@@ -13,6 +13,7 @@ import (
   "log"
   "strings"
   "os"
+  "io"
   "strconv"
   "fmt"
   "errors"
@@ -210,6 +211,49 @@ func main() {
   m.Get("/api/camera_streaming/off", func(r render.Render) {        
     turn_off_streaming()
     r.JSON(200, map[string]interface{}{"status": "streaming stopped"})
+  })
+  
+  m.Get("/api/camera_picture_petri_dish/uv", func(res http.ResponseWriter, req *http.Request) {
+    running = true
+    
+    turn_on_uv_light()
+    time.Sleep(2 * time.Second)
+    camera_picture_petri_dish("UV")
+    turn_off_uv_light()
+    
+    running = false
+    
+    // serving image
+    res.Header().Set("Content-Type", "image/png")
+    f, err := os.Open(filepath.Dir(dir) + "/horus-v2/bin/capture.png")
+    if err != nil {
+      log.Printf("err= %s", err.Error())
+      res.WriteHeader(500)
+    }
+    defer f.Close()
+    io.Copy(res, f)
+    
+  })
+  
+  m.Get("/api/camera_picture_petri_dish/white", func(res http.ResponseWriter, req *http.Request) {
+    running = true
+    
+    turn_on_white_light()
+    time.Sleep(2 * time.Second)
+    camera_picture_petri_dish("WHITE")
+    turn_off_white_light()
+    
+    running = false
+    
+    // serving image
+    res.Header().Set("Content-Type", "image/png")
+    f, err := os.Open(filepath.Dir(dir) + "/horus-v2/bin/capture.png")
+    if err != nil {
+      log.Printf("err= %s", err.Error())
+      res.WriteHeader(500)
+    }
+    defer f.Close()
+    io.Copy(res, f)
   })
     
   // take a picture using the camera 0
@@ -417,6 +461,17 @@ func run_experiment(project_id string, slot string, genetic_parts string) (error
     return err        
 }
 
+func camera_picture_petri_dish(light_type string) {
+  turn_off_streaming()
+  
+  // remove files
+  os.Remove(filepath.Dir(dir) + "/horus-v2/bin/capture.png")
+  
+  // calling script to take picture
+  proc := exec.Command("bash", filepath.Dir(dir) + "/horus-v2/bin/camera-picture-igor.sh", light_type)
+  proc.Run()
+}
+
 func camera_picture(project_id int, slot string, uv_light bool, light bool) (error) {
   // we cannot use two cameras at the same time
   turn_off_streaming()
@@ -509,6 +564,14 @@ func turn_off_uv_light() (string, error) {
 
 func turn_on_uv_light() (string, error) {
   return serial_cmd("1")
+}
+
+func turn_off_white_light() (string, error) {
+  return serial_cmd("C")
+}
+
+func turn_on_white_light() (string, error) {
+  return serial_cmd("B")
 }
 
 func get_incubator_stats() (string, error) {
