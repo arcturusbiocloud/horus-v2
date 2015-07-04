@@ -217,7 +217,7 @@ func main() {
     running = true
     
     turn_on_uv_light()
-    time.Sleep(2 * time.Second)
+    time.Sleep(4 * time.Second)
     camera_picture_petri_dish("UV")
     turn_off_uv_light()
     
@@ -239,7 +239,7 @@ func main() {
     running = true
     
     turn_on_white_light()
-    time.Sleep(2 * time.Second)
+    time.Sleep(4 * time.Second)
     camera_picture_petri_dish("WHITE")
     turn_off_white_light()
     
