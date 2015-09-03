@@ -316,15 +316,8 @@ func main() {
   m.Post("/api/run_virtual_experiment", func(req *http.Request, r render.Render, params martini.Params) {
     // get project_id   
     project_id := req.FormValue("project_id")
-    
     // get petri dish slot
-    slot := req.FormValue("slot")
-    iSlot, _ := strconv.Atoi(slot)
-    if iSlot <= 0 || iSlot >=12 {
-      r.JSON(200, map[string]interface{}{"status": "error", "error": "Petri dish slot out of range."})
-      return
-    }
-    
+    slot := req.FormValue("slot")    
     // get genetic parts
     genetic_parts := req.FormValue("genetic_parts")
                 
