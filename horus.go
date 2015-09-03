@@ -357,8 +357,8 @@ func run_virtual_experiment(project_id string, slot string, genetic_parts string
   // send the other fake updates to the project timeline
   go func() {
     // wait to update the timeline status
-    // time.Sleep(90 * time.Minute)
-    time.Sleep(30 * time.Second)
+    time.Sleep(90 * time.Minute)
+    // time.Sleep(30 * time.Second)
     
     // send the transform update to arcturus.io project timeline
     proc := exec.Command("curl", 
@@ -370,8 +370,8 @@ func run_virtual_experiment(project_id string, slot string, genetic_parts string
     }
 
     // wait to update the timeline status
-    // time.Sleep(10 * time.Minute)
-    time.Sleep(30 * time.Second)
+    time.Sleep(10 * time.Minute)
+    // time.Sleep(30 * time.Second)
     
     // send the plating update to arcturus.io project timeline
     proc = exec.Command("curl", 
@@ -383,8 +383,8 @@ func run_virtual_experiment(project_id string, slot string, genetic_parts string
     }
     
     // wait to update the timeline status
-    // time.Sleep(5 * time.Minute)
-    time.Sleep(30 * time.Second)
+    time.Sleep(5 * time.Minute)
+    // time.Sleep(30 * time.Second)
     
     // send the incubating update to arcturus.io project timeline
     proc = exec.Command("curl", 
