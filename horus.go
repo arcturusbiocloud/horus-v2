@@ -329,31 +329,7 @@ func main() {
   m.Run()
 }
 
-func run_virtual_experiment(project_id string, slot string, genetic_parts string) (error) {
-  // set the running state
-  running = true
-  
-  // turn on virtual streaming
-  go func() {
-    exe_cmd("avconv -i " + filepath.Dir(dir) + "/horus-v2/streaming/XJRl3Bsq.20150411T022627.mp4 -vcodec copy -f flv rtmp://publish-sfo1.cine.io/live/XJRl3Bsq?group40")
-  }()
-  
-  // kill the streaming after 5 minutes
-  go func() {
-    time.Sleep(300 * time.Second)
-    
-    // get the latest video processed by cine.io. It takes some time to encode the video
-    // by now we are not getting the final video but adding a previous recorded
-    // update the project with the final video
-    proc := exec.Command("curl",
-                          "--insecure",
-                          "-X", "PUT", fmt.Sprintf("https://www.arcturus.io/api/projects/%s?access_token=55d28fc5783172b90fea425a2312b95a&recording_file_name=XJRl3Bsq.20150411T022627.mp4", project_id))
-    _, err := proc.CombinedOutput()
-    if err != nil {
-      fmt.Printf("run_experiment() project_id=%d err=%s\n", project_id, err.Error())
-    }                                                     
-  }()
-  
+func run_virtual_experiment(project_id string, slot string, genetic_parts string) (error) {  
   // send the assembly update to arcturus.io project timeline
   proc := exec.Command("curl", 
                        "--insecure", 
@@ -366,7 +342,8 @@ func run_virtual_experiment(project_id string, slot string, genetic_parts string
   // send the other fake updates to the project timeline
   go func() {
     // wait to update the timeline status
-    time.Sleep(90 * time.Minute)
+    // time.Sleep(90 * time.Minute)
+    time.Sleep(30 * time.Second)
     
     // send the transform update to arcturus.io project timeline
     proc := exec.Command("curl", 
@@ -378,8 +355,9 @@ func run_virtual_experiment(project_id string, slot string, genetic_parts string
     }
 
     // wait to update the timeline status
-    time.Sleep(10 * time.Minute)
-
+    // time.Sleep(10 * time.Minute)
+    time.Sleep(30 * time.Second)
+    
     // send the plating update to arcturus.io project timeline
     proc = exec.Command("curl", 
                          "--insecure", 
@@ -390,7 +368,8 @@ func run_virtual_experiment(project_id string, slot string, genetic_parts string
     }
     
     // wait to update the timeline status
-    time.Sleep(5 * time.Minute)
+    // time.Sleep(5 * time.Minute)
+    time.Sleep(30 * time.Second)
     
     // send the incubating update to arcturus.io project timeline
     proc = exec.Command("curl", 
@@ -400,9 +379,6 @@ func run_virtual_experiment(project_id string, slot string, genetic_parts string
     if err != nil {
       fmt.Printf("run_experiment() project_id=%d err=%s\n", project_id, err.Error())
     }
-
-    // set the running state
-    running = false 
   }()
   
   return err  
