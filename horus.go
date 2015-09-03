@@ -325,6 +325,21 @@ func main() {
     
     r.JSON(200, map[string]interface{}{"status": fmt.Sprintf("Running experiment for the project %s at the petri dish slot %s with the genetic parts %s", project_id, slot, genetic_parts)})    
   })
+  
+  m.Get("/api/take_virtual_picture/:project_id/:slot/:gene/:index", func(r render.Render, params martini.Params) {            
+    // get project_id     
+    project_id, _ := strconv.Atoi(params["project_id"])
+    // get petri dish slot
+    slot := params["slot"]
+    // get gene gfp, rdf, acp    
+    gene := params["gene"]
+    // get time index + random element A:E, 0_A or 0_C (0 hour), 1_B (10 hours), 2_C (20 hours), 3_E (30 hours)
+    index := params["index"]
+        
+    go camera_virtual_picture(project_id, slot, gene, index)
+    
+    r.JSON(200, map[string]interface{}{"status": fmt.Sprintf("Taking virtual picture for the project %d at the petri dish slot %s filename: %s_%s.png", project_id, slot, gene, index)})
+  })
       
   m.Run()
 }
@@ -496,6 +511,23 @@ func camera_picture(project_id int, slot string, uv_light bool, light bool) (err
 
   running = false
     
+  return nil
+}
+
+func camera_virtual_picture(project_id int, slot string, gene string, index string) (error) {  
+  go func() {
+    // post picture with curl instead of github.com/ddliu/go-httpclient because I am facing problems with the cacerts from the bbb
+    proc := exec.Command("curl", 
+                         "--insecure", 
+                         "-X", "POST", fmt.Sprintf("https://www.arcturus.io/api/projects/%d/activities?access_token=55d28fc5783172b90fea425a2312b95a&key=5", project_id), 
+                         "-F", "content=@"+ filepath.Dir(dir) + fmt.Sprintf("/horus-v2/pictures/%s_%s.png", gene, index))
+    _, err := proc.CombinedOutput()
+
+    if err != nil {
+      fmt.Printf("camera_picture() project_id=%d err=%s\n", project_id, err.Error())
+    }
+  }()
+      
   return nil
 }
 
